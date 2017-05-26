@@ -24,7 +24,7 @@ function setup() {
     fullscreen(true);
 
     colorMode(HSB, 100, 100, 100, 1);
-    createCanvas(displayWidth, displayHeight);
+    createCanvas(windowWidth, windowHeight);
 }
 
 function deviceMoved() {
