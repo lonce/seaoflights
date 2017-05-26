@@ -21,7 +21,7 @@ function setup() {
     setupAudio();
     setupVisuals();
 
-    fullscreen(true);
+    //fullscreen(true);
 
     colorMode(HSB, 100, 100, 100, 1);
     createCanvas(windowWidth, windowHeight);
