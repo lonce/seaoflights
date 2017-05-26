@@ -1,4 +1,3 @@
-var clientId;
 var devices = {
   osc: {
     sin: null,
@@ -151,7 +150,7 @@ function noteOff() {
 }
 
 function touchStarted() {
-    noteOn(60);
+    noteOn(48);
 }
 
 function touchEnded() {
