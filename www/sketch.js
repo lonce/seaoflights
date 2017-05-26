@@ -24,7 +24,7 @@ function setup() {
     fullscreen(true);
 
     colorMode(HSB, 100, 100, 100, 1);
-    createCanvas(windowWidth, windowHeight);
+    createCanvas(displayWidth, displayHeight);
 }
 
 function deviceMoved() {
@@ -78,7 +78,7 @@ function drawWave() {
 function draw() {
     background(0);
     drawBG();
-    drawWave();
+    //drawWave();
 }
 
 function setupVisuals() {
@@ -115,38 +115,17 @@ function tuneSynths(note) {
     config.visual.bg.H = note % 100;
     devices.osc.sin.freq(midiToFreq(note));
     devices.osc.saw.freq(midiToFreq(note));
-    /*
-    for (var osc in devices.osc) {
-        if (devices.osc.hasOwnProperty(osc)) {
-            osc.freq(midiToFreq(note))
-        }
-    }
-    */
 }
 
 function noteOn(note) {
     tuneSynths(note + config.audio.noteOffset);
     devices.env.sin.triggerAttack();
     devices.env.saw.triggerAttack();
-    /*
-    for (var env in devices.env) {
-        if (devices.env.hasOwnProperty(env)) {
-            env.triggerAttack();
-        }
-    }
-    */
 }
 
 function noteOff() {
     devices.env.sin.triggerRelease();
     devices.env.saw.triggerRelease();
-    /*
-    for (var env in devices.env) {
-        if (devices.env.hasOwnProperty(env)) {
-            env.triggerRelease();
-        }
-    }
-    */
 }
 
 function touchStarted() {

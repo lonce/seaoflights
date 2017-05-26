@@ -4,7 +4,7 @@ var config = {
         ip: "Trijeet.local",
         port: "8081"
     },
-    frameRate: 32,
+    frameRate: 12,
     audio: {
         env: {
             attackTime: 0.005,
