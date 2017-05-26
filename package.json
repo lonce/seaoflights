@@ -1,0 +1,10 @@
+{
+  "name": "BasicWebTemplate",
+  "version": "0.1.0",
+  "description": "Just a simple file server",
+  "main": "www/appscripts/main.js",
+  "dependencies": {
+    "express": "",
+    "socket.io": ""
+  }
+}
