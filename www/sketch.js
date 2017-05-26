@@ -78,7 +78,7 @@ function drawWave() {
 function draw() {
     background(0);
     drawBG();
-    //drawWave();
+    drawWave();
 }
 
 function setupVisuals() {
