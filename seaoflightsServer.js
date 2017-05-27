@@ -16,6 +16,7 @@ if (process.argv.length < 3){
 k_portnum=process.argv[2] || k_portnum;
 
 //****************************************************************************
+// sol is the location that nginx looks for to reverse proxy
 var m_useRoot="/sol/www/";
 app.use(express.static(__dirname + m_useRoot));
 
