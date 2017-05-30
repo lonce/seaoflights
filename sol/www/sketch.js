@@ -1,3 +1,13 @@
+/*
+ * Global client code that handles initial client-side setup and the
+ * first connection with the server. Upon connection, the server should
+ * send the client an "init" message with the "clientId" in the data
+ * that it will use in the future to refer to this client. In response
+ * the client sends its id alongside its seating section, to which the
+ * server responds with a "seatingAck" message including its id and
+ * seating section. If this is correct, the initial handshake is done.
+ */
+
 var state = {
   clientId: -1,
   seatingSection: "C",
@@ -6,11 +16,11 @@ var state = {
 
 var socket = null;
 
-var globalMessageHandler = {
-  "init": initClient,
-  "seatingAck": seatingCheck,
-  "mute": muteClient,
-  "setMovement": setMovement
+function globalMessageHandler(socket) {
+  socket.on("init", initClient);
+  socket.on("seatingAck", seatingCheck);
+  socket.on("mute", muteClient);
+  socket.on("setMovement", setMovement);
 }
 
 function audienceInit() {
@@ -19,46 +29,35 @@ function audienceInit() {
   alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
   alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
   state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "");
+  globalMessageHandler(conn);
   conn = io.connect(conn.serverAddr);
-  conn.on('message', handleMessage);
 }
 
-function initClient(payload) {
-  state.clientId = payload.clientId;
+function initClient(data) {
+  state.clientId = data.clientId;
   console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
-  conn.send({clientId: state.clientId, seatingSection: state.seatingSection});
+  conn.emit("setLocation", {seatingSection: state.seatingSection});
 }
 
-function seatingCheck(payload) {
-  if(payload.seatingSection !== state.seatingSection) {
+function seatingCheck(data) {
+  if(data.seatingSection !== state.seatingSection) {
     console.log("Server has outdated seating information for me, correcting");
-    sendMessage({clientId: state.clientId, seatingSection: state.seatingSection});
+    sendMessage("setLocation", {seatingSection: state.seatingSection});
   } else {
     console.log("Server has correct seating information for me, moving on");
   }
 }
 
-
-function handleMessage(msg) {
-  if(msg.destId === "all" || msg.destId === clientId) {
-    if(state.movement >= 0) {
-      state.movement.messageHandler[msg.header](msg.payload);
-    } else {
-      globalMessageHandler[msg.header](msg.payload);
-    }
-  }
-}
-
-function mute(payload) {
+function mute(data) {
   console.log("Muting client");
 }
 
-function setMovement(payload) {
+function setMovement(data) {
   state.movement = -1;
   console.log("Unsetting movement so new movement can be initialized");
-  movements[payload.movement].init();
-  console.log("Setting movement to: ", payload.movement);
-  state.movement = payload.movement;
+  movements[data.movement].init(conn);
+  console.log("Setting movement to: ", data.movement);
+  state.movement = data.movement;
 }
 
 function setup() {
