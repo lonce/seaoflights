@@ -35,6 +35,7 @@ io.sockets.on("connection", function (socket) {
       socket.emit('seatingAck', {seatingSection:data.seatingSection});
   });
   socket.emit('init', {clientId: socket.myID});
+  socket.emit('setMovement', {movement: 0});
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
     var clientSection = reverseClientMap[socket.myID];

@@ -1,9 +1,5 @@
 var config = {
     promptId: false,
-    ws: {
-        ip: "Trijeet.local",
-        port: "8081"
-    },
     frameRate: 12,
     audio: {
         env: {

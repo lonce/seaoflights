@@ -1,6 +1,6 @@
 var firstMovement = {
-  init: function(socket) {
-    this.messageHandler(socket);
+  init: function(sock) {
+    this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.osc = new p5.SinOsc();
     this.env = new p5.Env();
@@ -21,8 +21,8 @@ var firstMovement = {
     fill(bgColor);
     rect(0, 0, width, height);
   },
-  messageHandler: function(socket) {
-    socket.on("setNote", this.setNote);
+  messageHandler: function(sock) {
+    sock.on("setNote", this.setNote);
   },
   touchStarted: function() {
     this.noteOn();

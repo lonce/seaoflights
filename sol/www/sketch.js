@@ -14,13 +14,13 @@ var state = {
   movement: -1
 };
 
-var socket = null;
+var socket = io();
 
-function globalMessageHandler(socket) {
-  socket.on("init", initClient);
-  socket.on("seatingAck", seatingCheck);
-  socket.on("mute", muteClient);
-  socket.on("setMovement", setMovement);
+function globalMessageHandler(sock) {
+  sock.on("init", initClient);
+  sock.on("seatingAck", seatingCheck);
+  sock.on("mute", muteClient);
+  sock.on("setMovement", setMovement);
 }
 
 function audienceInit() {
@@ -29,14 +29,14 @@ function audienceInit() {
   alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
   alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
   state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "");
-  globalMessageHandler(conn);
-  conn = io.connect(conn.serverAddr);
+  globalMessageHandler(socket);
+  socket.connect();
 }
 
 function initClient(data) {
   state.clientId = data.clientId;
   console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
-  conn.emit("setLocation", {seatingSection: state.seatingSection});
+  socket.emit("setLocation", {seatingSection: state.seatingSection});
 }
 
 function seatingCheck(data) {
@@ -55,15 +55,15 @@ function mute(data) {
 function setMovement(data) {
   state.movement = -1;
   console.log("Unsetting movement so new movement can be initialized");
-  movements[data.movement].init(conn);
+  movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
   state.movement = data.movement;
 }
 
 function setup() {
-  frameRate(config.frameRate);
+  frameRate();
   audienceInit();
-  connectToServer();
+  socketectToServer();
   colorMode(HSB, 100, 100, 100, 1);
   createCanvas(windowWidth, windowHeight);
 }
