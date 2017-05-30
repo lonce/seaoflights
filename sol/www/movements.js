@@ -12,10 +12,10 @@ var firstMovement = {
   draw: function() {
     var level = this.meter.getLevel();
     var bgColor = color(
-        config.visual.bg.H,
-        config.visual.bg.S,
-        config.visual.bg.B,
-        pow(level, config.visual.bg.alphaFactor));
+        clientConfig.visual.bg.H,
+        clientConfig.visual.bg.S,
+        clientConfig.visual.bg.B,
+        pow(level, clientConfig.visual.bg.alphaFactor));
 
     noStroke();
     fill(bgColor);
