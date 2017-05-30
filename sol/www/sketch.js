@@ -48,54 +48,51 @@ function seatingCheck(data) {
   }
 }
 
-function mute(data) {
+function muteClient(data) {
   console.log("Muting client");
 }
 
 function setMovement(data) {
-  state.movement = -1;
+  state.movement = null;
   console.log("Unsetting movement so new movement can be initialized");
   movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
-  state.movement = data.movement;
+  state.movement = movements[data.movement];
 }
 
 function setup() {
-  frameRate();
+  frameRate(32);
   audienceInit();
-  socketectToServer();
   colorMode(HSB, 100, 100, 100, 1);
   createCanvas(windowWidth, windowHeight);
 }
 
 function draw() {
-  if (state.movement > -1 && state.movement.draw) {
+  if (state.movement.draw) {
     state.movement.draw();
-  } else {
-    console.log("No phase set, skipping draw");
   }
 }
 
 function touchStarted() {
-  if(state.movement > -1 && state.movement.touchStarted) {
+  if(state.movement.touchStarted) {
     state.movement.touchStarted();
   }
 }
 
 function touchEnded() {
-  if(state.movement > -1 && state.movement.touchEnded) {
+  if(state.movement.touchEnded) {
     state.movement.touchEnded();
   }
 }
 
 function deviceShaken() {
-  if(state.movement > -1 && state.movement.deviceShaken) {
+  if(state.movement.deviceShaken) {
     state.movement.deviceShaken();
   }
 }
 
 function deviceMoved() {
-  if(state.movement > -1 && state.movement.deviceMoved) {
+  if(state.movement.deviceMoved) {
     state.movement.deviceMoved();
   }
 }

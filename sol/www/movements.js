@@ -2,7 +2,7 @@ var firstMovement = {
   init: function(sock) {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
-    this.osc = new p5.SinOsc();
+    this.osc = new p5.SinOsc(440);
     this.env = new p5.Env();
     this.env.setADSR(0.01, 0.1, 1, 0.5);
     this.env.setRange(1, 0);
@@ -31,9 +31,11 @@ var firstMovement = {
     this.noteOff();
   },
   noteOn: function() {
+    console.log("Play note");
     this.env.triggerAttack();
   },
   noteOff: function() {
+    console.log("Stop note");
     this.env.triggerRelease();
   },
   setNote: function(payload) {

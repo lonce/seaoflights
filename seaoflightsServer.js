@@ -24,12 +24,15 @@ app.use(express.static(__dirname + m_useRoot));
 server.listen(process.argv[2] || k_portnum);
 console.log("Connected and listening on port " + k_portnum);
 
+var clientMap = {};
+var reverseClientMap = {};
 var connectionID = 0;
 
 io.sockets.on("connection", function (socket) {
   socket.myID = connectionID++;
   console.log("Got a connection, assigning myID = " + socket.myID);
   socket.on("setLocation", function(data) {
+      clientMap[data.seatingSection] = clientMap[data.seatingSection] || [];
       clientMap[data.seatingSection].push(socket.myID);
       reverseClientMap[socket.myID] = data.seatingSection;
       socket.emit('seatingAck', {seatingSection:data.seatingSection});
