@@ -1,4 +1,5 @@
 var firstMovement = {
+  name: "First movement",
   init: function(sock) {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();

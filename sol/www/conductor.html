@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.slim.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="movements.js"></script>
+        <script src="conductor.js"></script>
+    </head>
+    <body>
+      <h1>Phone Phasing Conductor</h1>
+      <h2>Clients connected from each section</h2>
+      <table id="sectionsTable">
+        <tr class="titles">
+          <td>Left</td><td>Center</td><td>Right</td>
+        </tr>
+        <tr class="counts">
+          <td class='l'>0</td>
+          <td class='c'>0</td>
+          <td class='r'>0</td>
+        </tr>
+      </table>
+      <div class="controls">
+        <div class="movements">
+          <ul>
+            <li class="active"><button>No movement active</button></li>
+          </ul>
+        </div>
+        <div class="generalControls">
+          <button id="mute">Mute</button>
+          <button id="unmute">Unmute</button>
+        </div>
+      </div>
+    </body>
+</html>

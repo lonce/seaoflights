@@ -27,25 +27,90 @@ console.log("Connected and listening on port " + k_portnum);
 var clientMap = {};
 var reverseClientMap = {};
 var connectionID = 0;
+var conductorID = -1;
+var conductorSock = -1;
+
+function getClientData() {
+  var l= 0;
+  var r= 0;
+  var c= 0;
+  if (clientMap['l']) {
+    l = clientMap['l'].length;
+  }
+  if (clientMap['r']) {
+    r = clientMap['r'].length;
+  }
+  if (clientMap['c']) {
+    c = clientMap['c'].length;
+  }
+  return {r: r, c: c, l: l};
+}
+
+function dropClient(id) {
+    if(clientMap[clientSection]) {
+      var clientSection = reverseClientMap[id];
+      delete reverseClientMap[id];
+      var clientIdx = clientMap[clientSection].indexOf(id);
+      clientMap[clientSection].splice(clientIdx, 1);
+    }
+    if (conductorID > -1) {
+      console.log("I have a conductor, telling it client counts");
+      conductorSock.emit('clientcount', getClientData());
+    }
+}
 
 io.sockets.on("connection", function (socket) {
   socket.myID = connectionID++;
   console.log("Got a connection, assigning myID = " + socket.myID);
   socket.on("setLocation", function(data) {
       clientMap[data.seatingSection] = clientMap[data.seatingSection] || [];
+      if(socket.myID in reverseClientMap) {
+        var clientSection = reverseClientMap[socket.myID];
+        delete reverseClientMap[socket.myID];
+        if(clientMap[clientSection]) {
+          var clientIdx = clientMap[clientSection].indexOf(socket.myID);
+          if (clientIdx > -1) {
+            clientMap[clientSection].splice(clientIdx, 1);
+          }
+        }
+      }
       clientMap[data.seatingSection].push(socket.myID);
       reverseClientMap[socket.myID] = data.seatingSection;
       socket.emit('seatingAck', {seatingSection:data.seatingSection});
+      if (conductorID > -1) {
+        var clientData = getClientData();
+        console.log("I have a conductor ", conductorID, " telling it client counts, ", clientData);
+        conductorSock.emit('clientcount', clientData);
+      }
   });
-  socket.emit('init', {clientId: socket.myID});
-  socket.emit('setMovement', {movement: 0});
+  socket.on("conductor", function(data) {
+    console.log("Socket with myID = " + socket.myID + " is actually a conductor!");
+    dropClient(socket.myID);
+    conductorID = socket.myID;
+    conductorSock = socket;
+    var clientData = getClientData();
+    console.log("I have a conductor ", conductorID, " telling it client counts, ", clientData);
+    socket.emit('clientcount', clientData);
+  });
+  socket.on("changeMovement", function(data) {
+    socket.broadcast.emit("setMovement", {movement: data.movement});
+  });
+  socket.on("muteAll", function(data) {
+    socket.broadcast.emit("mute", {});
+  });
+  socket.on("unmuteAll", function(data) {
+    socket.broadcast.emit("unmute", {});
+  });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
-    var clientSection = reverseClientMap[socket.myID];
-    delete reverseClientMap[socket.myID];
-    var clientIdx = clientMap[clientSection].indexOf(socket.myID);
-    clientMap[clientSection].splice(clientIdx, 1);
+    dropClient(socket.myID);
   });
+  socket.on('idCorrection', function(data) {
+    dropClient(socket.myID);
+    socket.myID = data.rightID;
+    socket.emit('init', {clientId: socket.myID});
+  });
+  socket.emit('init', {clientId: socket.myID});
 });
 
 

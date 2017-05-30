@@ -20,6 +20,7 @@ function globalMessageHandler(sock) {
   sock.on("init", initClient);
   sock.on("seatingAck", seatingCheck);
   sock.on("mute", muteClient);
+  sock.on("unmute", unmuteClient);
   sock.on("setMovement", setMovement);
 }
 
@@ -34,9 +35,14 @@ function audienceInit() {
 }
 
 function initClient(data) {
-  state.clientId = data.clientId;
-  console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
-  socket.emit("setLocation", {seatingSection: state.seatingSection});
+  if(state.clientId > -1 && data.clientId != state.clientId) {
+    console.log("Server trying to give me a new id, telling it my real id");
+    socket.emit("idCorrection", {wrongId: data.clientId, rightId: state.clientId});
+  } else {
+    state.clientId = data.clientId;
+    console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
+    socket.emit("setLocation", {seatingSection: state.seatingSection});
+  }
 }
 
 function seatingCheck(data) {
@@ -52,8 +58,15 @@ function muteClient(data) {
   console.log("Muting client");
 }
 
+function unmuteClient(data) {
+  console.log("Unmuting client");
+}
+
 function setMovement(data) {
+  console.log(data);
   state.movement = null;
+  console.log("Setting movement to ", data.movement);
+  var movement = parseInt(data.movement);
   movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
   state.movement = movements[data.movement];
