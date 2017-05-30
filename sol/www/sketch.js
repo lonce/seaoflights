@@ -54,7 +54,6 @@ function muteClient(data) {
 
 function setMovement(data) {
   state.movement = null;
-  console.log("Unsetting movement so new movement can be initialized");
   movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
   state.movement = movements[data.movement];

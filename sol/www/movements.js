@@ -10,12 +10,14 @@ var firstMovement = {
     this.osc.start();
   },
   draw: function() {
+    background(0);
     var level = this.meter.getLevel();
+    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
     var bgColor = color(
         clientConfig.visual.bg.H,
         clientConfig.visual.bg.S,
         clientConfig.visual.bg.B,
-        pow(level, clientConfig.visual.bg.alphaFactor));
+        bgAlpha);
 
     noStroke();
     fill(bgColor);
