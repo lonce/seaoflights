@@ -31,28 +31,6 @@ fun void main() {
 
     spork ~ handleMIDI();
 
-    100 => float bpm;
-
-    <<< "Initialing left section" >>>;
-    for (0 => int i; i < leftSection.cap(); i++) {
-        leftSection[i] => int id;
-        <<< id >>>;
-        tracks[id].init(id, xmitters[id], bpm);
-        tracks[id].play();
-    }
-    <<< "Initialing center section" >>>;
-    for (0 => int i; i < centerSection.cap(); i++) {
-        centerSection[i] => int id;
-        tracks[id].init(id, xmitters[id], bpm);
-        tracks[id].play();
-    }
-    <<< "Initialing right section" >>>;
-    for (0 => int i; i < rightSection.cap(); i++) {
-        rightSection[i] => int id;
-        tracks[id].init(id, xmitters[id], bpm);
-        tracks[id].play();
-    }
-
     spork ~ watchPlayers();
 
     while (true) 1::second => now;
@@ -138,17 +116,79 @@ fun void handleMIDI() {
         // get the message(s)
         while(min.recv(msg)) {
             // <<< msg.data1, msg.data2, msg.data3 >>>;
+
+            // MOVEMENT 1 init
             if (msg.data1 == 176) {
-                1 => movement;
+                if (movement != 1) {
+                    1 => movement;
+
+                    100 => float bpm;
+                    8 => int beatNumber;
+                    8 => int beatMeasure;
+
+                    Track _tracks[12];
+
+                    <<< "MOVEMENT 1: Tapping" >>>;
+                    <<< "Initialing left section" >>>;
+                    for (0 => int i; i < leftSection.cap(); i++) {
+                        leftSection[i] => int id;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                    }
+                    <<< "Initialing center section" >>>;
+                    for (0 => int i; i < centerSection.cap(); i++) {
+                        centerSection[i] => int id;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                    }
+                    <<< "Initialing right section" >>>;
+                    for (0 => int i; i < rightSection.cap(); i++) {
+                        rightSection[i] => int id;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                    }
+
+                    _tracks @=> tracks;
+                }
             }
 
-            // load seq
+            // MOVEMENT 2 init
+            if (msg.data1 == 177) {
+                if (movement != 2) {
+                    2 => movement;
+
+                    25 => float bpm;
+                    6 => int beatNumber;
+                    8 => int beatMeasure;
+
+                    Track _tracks[12];
+
+                    <<< "MOVEMENT 2: Waves" >>>;
+                    <<< "Initialing left section" >>>;
+                    for (0 => int i; i < leftSection.cap(); i++) {
+                        leftSection[i] => int id;
+                        <<< id >>>;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                    }
+                    <<< "Initialing center section" >>>;
+                    for (0 => int i; i < centerSection.cap(); i++) {
+                        centerSection[i] => int id;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 1);
+                    }
+                    <<< "Initialing right section" >>>;
+                    for (0 => int i; i < rightSection.cap(); i++) {
+                        rightSection[i] => int id;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 2);
+                    }
+
+                    _tracks @=> tracks;
+                }
+            }
+
+            // MOVEMENT 1 CC
             if (movement == 1) {
                 if (msg.data2 == 53) {      // left section
                     if ((msg.data1 >= 144) && (msg.data1 <= 146)) {
                         for (int i; i < leftSection.cap(); i++) {
                             leftSection[i] => int _id;
-                            tracks[_id].loadSequence(msg.data1 - 144);
+                            tracks[_id].loadSequence(movement, msg.data1 - 144);
                         }
                     }
                 }
@@ -156,7 +196,7 @@ fun void handleMIDI() {
                     if ((msg.data1 >= 144) && (msg.data1 <= 146)) {
                         for (int i; i < centerSection.cap(); i++) {
                             centerSection[i] => int _id;
-                            tracks[_id].loadSequence(msg.data1 - 144);
+                            tracks[_id].loadSequence(movement, msg.data1 - 144);
                         }
                     }
                 }
@@ -164,7 +204,7 @@ fun void handleMIDI() {
                     if ((msg.data1 >= 144) && (msg.data1 <= 146)) {
                         for (int i; i < rightSection.cap(); i++) {
                             rightSection[i] => int _id;
-                            tracks[_id].loadSequence(msg.data1 - 144);
+                            tracks[_id].loadSequence(movement, msg.data1 - 144);
                         }
                     }
                 }
@@ -177,6 +217,25 @@ fun void handleMIDI() {
                 if ((msg.data2 == 92) && (msg.data1 == 144)) {
                     for (int i; i < tracks.cap(); i++)
                         tracks[i].mute();
+                }
+
+                if (msg.data1 == 176) {
+                    // set release
+                    if (msg.data2 == 19) {
+                        for (int i; i < tracks.cap(); i++)
+                            tracks[i].setSynthRelease(msg.data3);
+                    }
+                }
+            }
+
+            // MOVEMENT 2 CC
+            if (movement == 2) {
+                if (msg.data2 == 53) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 145)) {
+                        for (int i; i < tracks.cap(); i++) {
+                            tracks[i].runSequence(movement, msg.data1 - 144);
+                        }
+                    }
                 }
 
                 if (msg.data1 == 176) {

@@ -8,9 +8,13 @@
 //-----------------------------------------------------------------------------
 
 public class Sequencer {
-    8 => int SEQ_LEN;
+    0 => int SEQ_LEN;
+    int sequence[][][];
 
-    int sequence[0][SEQ_LEN][2];
+    fun void init(int len) {
+        len => SEQ_LEN;
+        int seq[0][SEQ_LEN][2] @=> sequence;
+    }
 
     0 => int measures;
     0 => int playhead;
@@ -27,11 +31,8 @@ public class Sequencer {
         if (playhead == SEQ_LEN) {
             0 => playhead;
             (measure + 1) % measures => measure;
-            return -1;
         }
-        else {
-            return playhead;
-        }
+        return playhead;
     }
 
     fun void incOffset() {
@@ -43,7 +44,12 @@ public class Sequencer {
     }
 
     fun void resetOffset() {
+        <<< "reset offset" >>>;
         0 => offset;
+    }
+
+    fun int setOffset(int off) {
+        off => offset;
     }
 
     fun int getOffset() {

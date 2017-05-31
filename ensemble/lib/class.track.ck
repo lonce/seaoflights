@@ -25,9 +25,12 @@ public class Track {
     0 => int offset;
 
     /* SEQUENCES */
-    Sequencer tappingSeq[3];
-
     int _measure[][];
+
+    /* MOVEMENT 1 */
+    Sequencer tappingSeq[3];
+    for (0 => int i; i < tappingSeq.cap(); i++)
+        tappingSeq[i].init(8);
 
     // TS 1
     [[36, 1], [48, 1], [48, 1], [48, 1], [36, 1], [48, 1], [48, 1], [48, 1]] @=> _measure;
@@ -42,29 +45,68 @@ public class Track {
     [[33, 1], [45, 1], [45, 1], [45, 1], [33, 1], [45, 1], [45, 1], [45, 1]] @=> _measure;
     tappingSeq[2].addMeasure(_measure);
 
-    fun void init(int _id, OscSend _xmit, float bpm) {
+    /* MOVEMENT 2 */
+    Sequencer wavesSeq[2];
+    for (0 => int i; i < wavesSeq.cap(); i++)
+        wavesSeq[i].init(6);
+
+    // W 1
+    [[48, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
+    wavesSeq[0].addMeasure(_measure);
+
+    // W 2
+    [[55, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
+    wavesSeq[1].addMeasure(_measure);
+
+
+
+    fun void init(int _id, OscSend _xmit, float bpm, int beatNumber, int beatMeasure, int _offset) {
         _id => id;
         _xmit @=> xmit;
         bpm => originalBpm;
+        _offset => offset;
 
-        metro.setup(bpm, 8, 8);
+        unloadSequence();
+
+        if (isPlaying)
+            stop();
+        metro.setup(bpm, beatNumber, beatMeasure);
 
         metro.getSixteenthBeatDur() => baseNoteLen;
 
         initPlayer(metro.getSixteenthBeatDur());
+
+        play();
     }
 
     fun void reinit() {
         initPlayer(metro.getSixteenthBeatDur());
     }
 
-    fun void loadSequence(int seqID) {
-        if (seqID == 0)
-            spork ~ _loadSequence(tappingSeq[0]);
-        if (seqID == 1)
-            spork ~ _loadSequence(tappingSeq[1]);
-        if (seqID == 2)
-            spork ~ _loadSequence(tappingSeq[2]);
+    fun void unloadSequence() {
+        false => seqLoaded;
+    }
+
+    fun void loadSequence(int seqType, int seqID) {
+        <<< "loading new sequence..." >>>;
+
+        // Movement 1: tapping
+        if (seqType == 1) {
+            if (seqID == 0)
+                spork ~ _loadSequence(tappingSeq[0]);
+            if (seqID == 1)
+                spork ~ _loadSequence(tappingSeq[1]);
+            if (seqID == 2)
+                spork ~ _loadSequence(tappingSeq[2]);
+        }
+
+        // Movement 2: waves
+        if (seqType == 2) {
+            if (seqID == 0)
+                spork ~ _loadSequence(wavesSeq[0]);
+            if (seqID == 1)
+                spork ~ _loadSequence(wavesSeq[1]);
+        }
     }
 
     fun void _loadSequence(Sequencer seq) {
@@ -72,15 +114,52 @@ public class Track {
 
         false => seqLoaded;
         seq @=> sequence;
-        <<< "Loaded sequence, measures: ", seq.measures >>>;
+        <<< "loaded sequence, measures: ", seq.measures >>>;
+        sequence.setOffset(offset);
         true => seqLoaded;
+    }
+
+    fun void runSequence(int seqType, int seqID) {
+        if (seqType == 2) {
+            if (seqID == 0)
+                spork ~ _runSequence(wavesSeq[0]);
+            if (seqID == 1)
+                spork ~ _runSequence(wavesSeq[1]);
+        }
+    }
+
+    fun void _runSequence(Sequencer seq) {
+        metro.measureTick => now;
+        // Movement 2: waves
+        false => seqLoaded;
+        seq @=> sequence;
+        sequence.setOffset(offset);
+        true => seqLoaded;
+
+        <<< "starting run..." >>>;
+        while (true) {
+            if (seqLoaded) {
+                if (sequence.hasNote()) {
+                    <<< id, "offset:", sequence.getOffset() >>>;
+                    triggerPlayer(sequence.getNote(), sequence.getLength());
+                }
+
+                sequence.tick() => int playhead;
+
+                if (playhead == 0) {
+                    <<< "end run!" >>>;
+                    return;
+                }
+            }
+
+            metro.eighthNoteTick => now;
+        }
     }
 
     fun void play() {
         metro.start();
         true => isPlaying;
         spork ~ loop();
-        spork ~ watch();
     }
 
     fun void pause() {
@@ -96,24 +175,14 @@ public class Track {
         while (isPlaying) {
             metro.eighthNoteTick => now;
 
-
             if (seqLoaded && !isMute) {
                 if (sequence.hasNote()) {
+                    <<< id, "offset:", sequence.getOffset() >>>;
                     triggerPlayer(sequence.getNote(), sequence.getLength());
                 }
 
-                sequence.tick();
+                sequence.tick() => int playhead;
             }
-        }
-    }
-
-    // use only for reading, never writing
-    fun void watch() {
-        while (isPlaying) {
-            metro.measureTick => now;
-            1::samp => now;
-            <<< metro.getMeasure() >>>;
-            <<< "[", !isMute, "]", " track:", id, "offset:", sequence.getOffset(), "(", isPhasing, ")" >>>;
         }
     }
 
@@ -137,7 +206,14 @@ public class Track {
         sequence.decOffset();
     }
 
+    fun void setOffset(int off) {
+        <<< "setting offset" >>>;
+        sequence.setOffset(off);
+        <<< sequence.getOffset() >>>;
+    }
+
     fun void mute() {
+        <<< "deactivating track ", id >>>;
         spork ~ _mute();
     }
 
@@ -147,6 +223,7 @@ public class Track {
     }
 
     fun void unmute() {
+        <<< "activating track ", id >>>;
         spork ~ _unmute();
     }
 
