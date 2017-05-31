@@ -46,7 +46,7 @@ var firstMovement = {
     this.osc.freq(midiToFreq(payload.note));
   },
   setADSR: function(payload) {
-    this.env.setADSR(payload);
+    this.env.setADSR(payload.a, payload.d, payload.s, payload.r);
   },
   mute: function() {
     this.env.setRange(0,0);

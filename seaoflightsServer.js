@@ -168,6 +168,27 @@ io.sockets.on("connection", function (socket) {
       console.log("setGain message without scope, ignoring");
     }
   });
+  socket.on("setADSR", function(data) {
+    var adsr = {a: data.a, d: data.d, s: data.s, r: data.r};
+    if (data.scope === "all") {
+      sectionParamMap['l'].ADSR = adsr;
+      sectionParamMap['r'].ADSR = adsr;
+      sectionParamMap['c'].ADSR = adsr;
+      socket.broadcast.emit("setADSR", adsr);
+    } else if (data.scope === "section") {
+      var ids = clientMap[data.target];
+      sectionParamMap[data.target].gain = adsr;
+      if (ids) {
+        ids.forEach(function(id) {
+          clientSocketMap[id].emit("setADSR", adsr);
+        });
+      }
+    } else if (data.scope === "id") {
+      clientSocketMap[parseInt(data.target)].emit("setADSR", adsr);
+    } else {
+      console.log("setGain message without scope, ignoring");
+    }
+  });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
     dropClient(socket.myID);
