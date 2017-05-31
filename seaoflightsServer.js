@@ -47,8 +47,8 @@ function getClientData() {
 }
 
 function dropClient(id) {
+    var clientSection = reverseClientMap[id];
     if(clientMap[clientSection]) {
-      var clientSection = reverseClientMap[id];
       delete reverseClientMap[id];
       var clientIdx = clientMap[clientSection].indexOf(id);
       clientMap[clientSection].splice(clientIdx, 1);
