@@ -26,7 +26,6 @@ $(document).ready(function() {
     value: 1,
     step: 0.01,
     change: function(event, ui) {
-      console.log($(ui.handle).parent());
       var value = parseFloat(ui.value);
       var info = $(ui.handle).parent().data();
       var scope = info['scope'];
@@ -61,5 +60,6 @@ function setMovement(ev) {
     console.log("Setting movement to ", el.id);
     $('.controls .movements ul li').removeClass('active');
     $(el).parent().addClass('active');
+    movements[el.id].init();
     socket.emit('changeMovement', {movement: el.id});
 }

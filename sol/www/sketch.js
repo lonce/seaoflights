@@ -36,14 +36,9 @@ function audienceInit() {
 }
 
 function initClient(data) {
-  if(state.clientId > -1 && data.clientId != state.clientId) {
-    console.log("Server trying to give me a new id, telling it my real id");
-    socket.emit("idCorrection", {wrongId: data.clientId, rightId: state.clientId});
-  } else {
-    state.clientId = data.clientId;
-    console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
-    socket.emit("setLocation", {seatingSection: state.seatingSection});
-  }
+  state.clientId = data.clientId;
+  console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
+  socket.emit("setLocation", {seatingSection: state.seatingSection});
 }
 
 function seatingCheck(data) {
@@ -52,6 +47,19 @@ function seatingCheck(data) {
     sendMessage("setLocation", {seatingSection: state.seatingSection});
   } else {
     console.log("Server has correct seating information for me, moving on");
+    console.log("Other data: ", data);
+    if(data.movement) {
+      console.log("Server said my movement should be ", data.movement);
+      setMovement(data);
+    }
+    if(data.gain) {
+      console.log("Server said my gain should be ", data.gain);
+      setGain(data);
+    }
+    if(data.mute) {
+      console.log("Server said my mute should be ", data.mute);
+      muteClient();
+    }
   }
 }
 

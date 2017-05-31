@@ -26,6 +26,7 @@ var firstMovement = {
   },
   messageHandler: function(sock) {
     sock.on("setNote", this.setNote);
+    sock.on("setADSR", this.setADSR);
   },
   touchStarted: function() {
     this.noteOn();
@@ -43,6 +44,9 @@ var firstMovement = {
   },
   setNote: function(payload) {
     this.osc.freq(midiToFreq(payload.note));
+  },
+  setADSR: function(payload) {
+    this.env.setADSR(payload);
   },
   mute: function() {
     this.env.setRange(0,0);

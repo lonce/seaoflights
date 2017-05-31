@@ -4,38 +4,43 @@
         <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
-        <script src="movements.js"></script>
+        <script src="conductor_movements.js"></script>
         <script src="conductor.js"></script>
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
     </head>
     <body>
       <h1>Phone Phasing Conductor</h1>
-      <h2>Clients connected from each section</h2>
+      <h2>Section Controls</h2>
       <table id="sectionsTable">
         <tr class="titles">
-          <td>Left</td><td>Center</td><td>Right</td>
+          <td></td><td>Left</td><td>Center</td><td>Right</td>
         </tr>
         <tr class="counts">
+          <td># Clients</td>
           <td class='l'>0</td>
           <td class='c'>0</td>
           <td class='r'>0</td>
         </tr>
         <tr class="mute-buttons">
+          <td>Force Mute</td>
           <td><button class="mute" data-scope="section" data-target="l">Mute</button></td>
           <td><button class="mute" data-scope="section" data-target="c">Mute</button></td>
           <td><button class="mute" data-scope="section" data-target="r">Mute</button></td>
         </tr>
         <tr class="unmute-buttons">
+          <td>Unmute</td>
           <td><button class="unmute" data-scope="section" data-target="l">Unmute</button></td>
           <td><button class="unmute" data-scope="section" data-target="c">Unmute</button></td>
           <td><button class="unmute" data-scope="section" data-target="r">Unmute</button></td>
         </tr>
         <tr class="master-gains">
+          <td>Gain</td>
           <td><div class="gain-slider" data-scope="section" data-target="l"></div></td>
           <td><div class="gain-slider" data-scope="section" data-target="c"></div></td>
           <td><div class="gain-slider" data-scope="section" data-target="r"></div></td>
         </tr>
       </table>
+      <h2>Global Controls</h2>
       <div class="controls">
         <div class="movements">
           <ul>
