@@ -25,8 +25,9 @@ var firstMovement = {
     rect(0, 0, width, height);
   },
   messageHandler: function(sock) {
-    sock.on("setNote", this.setNote);
-    sock.on("setADSR", this.setADSR);
+    var self = this;
+    sock.on("setNote", function (payload) {self.setNote(self, payload)});
+    sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
   },
   touchStarted: function() {
     this.noteOn();
@@ -42,20 +43,23 @@ var firstMovement = {
     console.log("Stop note");
     this.env.triggerRelease();
   },
-  setNote: function(payload) {
-    this.osc.freq(midiToFreq(payload.note));
+  setNote: function(self, payload) {
+    self.osc.freq(midiToFreq(payload.note));
   },
-  setADSR: function(payload) {
-    this.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+  setADSR: function(self, payload) {
+    console.log("Setting attack:", payload.a, " decay:", payload.d, " sus:", payload.s, " release:", payload.r);
+    self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
   },
   mute: function() {
-    this.env.setRange(0,0);
+    console.log("Muted");
+    this.env.mult(0);
   },
   unmute: function() {
-    this.env.setRange(1,0);
+    this.env.mult(1);
   },
   setGain: function(gain) {
-    this.env.setRange(gain,0);
+    console.log("Setting gain to ", gain);
+    this.env.mult(gain);
   }
 }
 

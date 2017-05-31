@@ -64,30 +64,25 @@ function seatingCheck(data) {
 }
 
 function muteClient(data) {
-  console.log("Muting client");
   if (state.movement.mute) {
     state.movement.mute();
   }
 }
 
 function unmuteClient(data) {
-  console.log("Unmuting client");
   if (state.movement.unmute) {
     state.movement.unmute();
   }
 }
 
 function setGain(data) {
-  console.log("Setting gain to ", data.gain);
   if (state.movement.setGain) {
     state.movement.setGain(data.gain);
   }
 }
 
 function setMovement(data) {
-  console.log(data);
   state.movement = null;
-  console.log("Setting movement to ", data.movement);
   var movement = parseInt(data.movement);
   movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
