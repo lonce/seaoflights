@@ -22,6 +22,7 @@ function globalMessageHandler(sock) {
   sock.on("mute", muteClient);
   sock.on("unmute", unmuteClient);
   sock.on("setMovement", setMovement);
+  sock.on("setGain", setGain);
 }
 
 function audienceInit() {
@@ -56,10 +57,23 @@ function seatingCheck(data) {
 
 function muteClient(data) {
   console.log("Muting client");
+  if (state.movement.mute) {
+    state.movement.mute();
+  }
 }
 
 function unmuteClient(data) {
   console.log("Unmuting client");
+  if (state.movement.unmute) {
+    state.movement.unmute();
+  }
+}
+
+function setGain(data) {
+  console.log("Setting gain to ", data.gain);
+  if (state.movement.setGain) {
+    state.movement.setGain(data.gain);
+  }
 }
 
 function setMovement(data) {

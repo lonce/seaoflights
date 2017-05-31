@@ -43,6 +43,15 @@ var firstMovement = {
   },
   setNote: function(payload) {
     this.osc.freq(midiToFreq(payload.note));
+  },
+  mute: function() {
+    this.env.setRange(0,0);
+  },
+  unmute: function() {
+    this.env.setRange(1,0);
+  },
+  setGain: function(gain) {
+    this.env.setRange(gain,0);
   }
 }
 

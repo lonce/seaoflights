@@ -26,6 +26,7 @@ console.log("Connected and listening on port " + k_portnum);
 
 var clientMap = {};
 var reverseClientMap = {};
+var clientSocketMap = {};
 var connectionID = 0;
 var conductorID = -1;
 var conductorSock = -1;
@@ -47,6 +48,9 @@ function getClientData() {
 }
 
 function dropClient(id) {
+    if(clientSocketMap[id]) {
+      delete clientSocketMap[id];
+    }
     var clientSection = reverseClientMap[id];
     if(clientMap[clientSection]) {
       delete reverseClientMap[id];
@@ -61,6 +65,7 @@ function dropClient(id) {
 
 io.sockets.on("connection", function (socket) {
   socket.myID = connectionID++;
+  clientSocketMap[socket.myID] = socket;
   console.log("Got a connection, assigning myID = " + socket.myID);
   socket.on("setLocation", function(data) {
       clientMap[data.seatingSection] = clientMap[data.seatingSection] || [];
@@ -95,11 +100,53 @@ io.sockets.on("connection", function (socket) {
   socket.on("changeMovement", function(data) {
     socket.broadcast.emit("setMovement", {movement: data.movement});
   });
-  socket.on("muteAll", function(data) {
-    socket.broadcast.emit("mute", {});
+  socket.on("mute", function(data) {
+    if (data.scope === "all") {
+      socket.broadcast.emit("mute", {});
+    } else if (data.scope === "section") {
+      var ids = clientMap[data.target];
+      if (ids) {
+        ids.forEach(function(id) {
+          clientSocketMap[id].emit("mute", {});
+        });
+      }
+    } else if (data.scope === "id") {
+      clientSocketMap[parseInt(data.target)].emit("mute", {});
+    } else {
+      console.log("Mute message without scope, ignoring");
+    }
   });
-  socket.on("unmuteAll", function(data) {
-    socket.broadcast.emit("unmute", {});
+  socket.on("unmute", function(data) {
+    if (data.scope === "all") {
+      socket.broadcast.emit("unmute", {});
+    } else if (data.scope === "section") {
+      var ids = clientMap[data.target];
+      if (ids) {
+        ids.forEach(function(id) {
+          clientSocketMap[id].emit("unmute", {});
+        });
+      }
+    } else if (data.scope === "id") {
+      clientSocketMap[parseInt(data.target)].emit("unmute", {});
+    } else {
+      console.log("Unmute message without scope, ignoring");
+    }
+  });
+  socket.on("setGain", function(data) {
+    if (data.scope === "all") {
+      socket.broadcast.emit("setGain", {gain: data.gain});
+    } else if (data.scope === "section") {
+      var ids = clientMap[data.target];
+      if (ids) {
+        ids.forEach(function(id) {
+          clientSocketMap[id].emit("setGain", {gain: data.gain});
+        });
+      }
+    } else if (data.scope === "id") {
+      clientSocketMap[parseInt(data.target)].emit("setGain", {gain: data.gain});
+    } else {
+      console.log("setGain message without scope, ignoring");
+    }
   });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
@@ -108,6 +155,7 @@ io.sockets.on("connection", function (socket) {
   socket.on('idCorrection', function(data) {
     dropClient(socket.myID);
     socket.myID = data.rightID;
+    clientSocketMap[socket.myID] = socket;
     socket.emit('init', {clientId: socket.myID});
   });
   socket.emit('init', {clientId: socket.myID});

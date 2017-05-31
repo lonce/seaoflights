@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.slim.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src="movements.js"></script>
         <script src="conductor.js"></script>
+        <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
     </head>
     <body>
       <h1>Phone Phasing Conductor</h1>
@@ -18,6 +20,21 @@
           <td class='c'>0</td>
           <td class='r'>0</td>
         </tr>
+        <tr class="mute-buttons">
+          <td><button class="mute" data-scope="section" data-target="l">Mute</button></td>
+          <td><button class="mute" data-scope="section" data-target="c">Mute</button></td>
+          <td><button class="mute" data-scope="section" data-target="r">Mute</button></td>
+        </tr>
+        <tr class="unmute-buttons">
+          <td><button class="unmute" data-scope="section" data-target="l">Unmute</button></td>
+          <td><button class="unmute" data-scope="section" data-target="c">Unmute</button></td>
+          <td><button class="unmute" data-scope="section" data-target="r">Unmute</button></td>
+        </tr>
+        <tr class="master-gains">
+          <td><div class="gain-slider" data-scope="section" data-target="l"></div></td>
+          <td><div class="gain-slider" data-scope="section" data-target="c"></div></td>
+          <td><div class="gain-slider" data-scope="section" data-target="r"></div></td>
+        </tr>
       </table>
       <div class="controls">
         <div class="movements">
@@ -26,8 +43,9 @@
           </ul>
         </div>
         <div class="generalControls">
-          <button id="mute">Mute</button>
-          <button id="unmute">Unmute</button>
+          <button class="mute" data-scope="all" data-target="">Mute</button>
+          <button class="unmute" data-scope="all" data-target="">Unmute</button>
+          <div class="gain-slider" data-scope="all" data-target=""></div>
         </div>
       </div>
     </body>
