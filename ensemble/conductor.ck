@@ -24,6 +24,25 @@ rightSection << 4;
 rightSection << 5;
 rightSection << 6;
 
+// Drone
+int droneSection[0];
+droneSection << 5;
+droneSection << 11;
+
+int upperSection[0];
+upperSection << 6;
+upperSection << 7;
+upperSection << 8;
+upperSection << 9;
+upperSection << 10;
+
+int lowerSection[0];
+lowerSection << 0;
+lowerSection << 1;
+lowerSection << 2;
+lowerSection << 3;
+lowerSection << 4;
+
 main();
 
 fun void main() {
@@ -118,7 +137,7 @@ fun void handleMIDI() {
             // <<< msg.data1, msg.data2, msg.data3 >>>;
 
             // MOVEMENT 1 init
-            if (msg.data1 == 176) {
+            if ((msg.data1 == 176) && (msg.data2 >= 16) && (msg.data2 <= 23)) {
                 if (movement != 1) {
                     1 => movement;
 
@@ -150,7 +169,7 @@ fun void handleMIDI() {
             }
 
             // MOVEMENT 2 init
-            if (msg.data1 == 177) {
+            if ((msg.data1 == 177) && (msg.data2 >= 16) && (msg.data2 <= 23)) {
                 if (movement != 2) {
                     2 => movement;
 
@@ -182,13 +201,49 @@ fun void handleMIDI() {
                 }
             }
 
+            // MOVEMENT 3 init
+            if ((msg.data1 == 178) && (msg.data2 >= 16) && (msg.data2 <= 23)) {
+                if (movement != 3) {
+                    3 => movement;
+
+                    180 => float bpm;
+                    12 => int beatNumber;
+                    8 => int beatMeasure;
+
+                    Track _tracks[12];
+
+                    <<< "MOVEMENT 3: Phases" >>>;
+                    <<< "Initialing drone section" >>>;
+                    for (0 => int i; i < droneSection.cap(); i++) {
+                        droneSection[i] => int id;
+                        <<< id >>>;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                    }
+                    <<< "Initialing upper section" >>>;
+                    for (0 => int i; i < upperSection.cap(); i++) {
+                        upperSection[i] => int id;
+                        <<< id >>>;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+
+                    }
+                    <<< "Initialing lower section" >>>;
+                    for (0 => int i; i < lowerSection.cap(); i++) {
+                        lowerSection[i] => int id;
+                        <<< id >>>;
+                        _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                    }
+
+                    _tracks @=> tracks;
+                }
+            }
+
             // MOVEMENT 1 CC
             if (movement == 1) {
                 if (msg.data2 == 53) {      // left section
                     if ((msg.data1 >= 144) && (msg.data1 <= 146)) {
                         for (int i; i < leftSection.cap(); i++) {
                             leftSection[i] => int _id;
-                            tracks[_id].loadSequence(movement, msg.data1 - 144);
+                            tracks[_id].loadSequence(1, msg.data1 - 144);
                         }
                     }
                 }
@@ -196,7 +251,7 @@ fun void handleMIDI() {
                     if ((msg.data1 >= 144) && (msg.data1 <= 146)) {
                         for (int i; i < centerSection.cap(); i++) {
                             centerSection[i] => int _id;
-                            tracks[_id].loadSequence(movement, msg.data1 - 144);
+                            tracks[_id].loadSequence(1, msg.data1 - 144);
                         }
                     }
                 }
@@ -204,7 +259,7 @@ fun void handleMIDI() {
                     if ((msg.data1 >= 144) && (msg.data1 <= 146)) {
                         for (int i; i < rightSection.cap(); i++) {
                             rightSection[i] => int _id;
-                            tracks[_id].loadSequence(movement, msg.data1 - 144);
+                            tracks[_id].loadSequence(1, msg.data1 - 144);
                         }
                     }
                 }
@@ -233,17 +288,110 @@ fun void handleMIDI() {
                 if (msg.data2 == 53) {
                     if ((msg.data1 >= 144) && (msg.data1 <= 145)) {
                         for (int i; i < tracks.cap(); i++) {
-                            tracks[i].runSequence(movement, msg.data1 - 144);
+                            tracks[i].runSequence(2, msg.data1 - 144);
+                        }
+                    }
+                }
+            }
+
+            // MOVEMENT 3 CC
+            if (movement == 3) {
+                if (msg.data2 == 57) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 150)) {   // drone section
+                        for (int i; i < droneSection.cap(); i++) {
+                            droneSection[i] => int _id;
+                            tracks[_id].loadSequence(3, msg.data1 - 144);
+                            tracks[_id].unmute();
                         }
                     }
                 }
 
-                if (msg.data1 == 176) {
-                    // set release
-                    if (msg.data2 == 19) {
-                        for (int i; i < tracks.cap(); i++)
-                            tracks[i].setSynthRelease(msg.data3);
+                if (msg.data2 == 53) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 144)) {
+                        for (int i; i < upperSection.cap(); i++) {
+                            upperSection[i] => int _id;
+                            <<< i, _id >>>;
+                            tracks[_id].loadSequence(4, msg.data1 - 144);
+                            tracks[_id].unmute();
+                        }
                     }
+                }
+
+                if (msg.data2 == 54) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 144)) {
+                        for (int i; i < lowerSection.cap(); i++) {
+                            lowerSection[i] => int _id;
+                            <<< i, _id >>>;
+                            tracks[_id].loadSequence(4, msg.data1 - 144);
+                            tracks[_id].unmute();
+                        }
+                    }
+                }
+
+                // set glitch level
+                if (msg.data2 == 16)  {
+                    for (int i; i < upperSection.cap(); i++) {
+                        upperSection[i] => int _id;
+                        tracks[_id].setSynthGlitch(msg.data3);
+                    }
+                    for (int i; i < lowerSection.cap(); i++) {
+                        lowerSection[i] => int _id;
+                        tracks[_id].setSynthGlitch(msg.data3);
+                    }
+                }
+
+                // change offset
+                if ((msg.data2 == 101) && (msg.data1 == 144)) {
+                    for (int i; i < lowerSection.cap(); i++) {
+                        lowerSection[i] => int _id;
+                        tracks[_id].decOffset();
+                    }
+                }
+                if ((msg.data2 == 100) && (msg.data1 == 144)) {
+                    for (int i; i < lowerSection.cap(); i++) {
+                        lowerSection[i] => int _id;
+                        tracks[_id].incOffset();
+                    }
+                }
+
+                // select phase
+                if (msg.data2 == 52) {
+                    if (msg.data1 == 144) {
+                        for (int i; i < lowerSection.cap(); i++) {
+                            lowerSection[i] => int _id;
+                            tracks[_id].phase(4);
+                        }
+                    }
+                    if (msg.data1 == 145) {
+                        for (int i; i < lowerSection.cap(); i++) {
+                            lowerSection[i] => int _id;
+                            tracks[_id].phase(5);
+                        }
+                    }
+                    if (msg.data1 == 146) {
+                        for (int i; i < lowerSection.cap(); i++) {
+                            lowerSection[i] => int _id;
+                            tracks[_id].phase(10);
+                        }
+                    }
+                    if (msg.data1 == 147) {
+                        for (int i; i < lowerSection.cap(); i++) {
+                            lowerSection[i] => int _id;
+                            tracks[_id].phase(25);
+                        }
+                    }
+                    if (msg.data1 == 148) {
+                        for (int i; i < lowerSection.cap(); i++) {
+                            lowerSection[i] => int _id;
+                            tracks[_id].phase(50);
+                        }
+                    }
+                }
+
+                // mute
+                if ((msg.data2 == 92) && (msg.data1 == 144)) {
+                    for (int i; i < tracks.cap(); i++)
+                        tracks[i].mute();
                 }
             }
 

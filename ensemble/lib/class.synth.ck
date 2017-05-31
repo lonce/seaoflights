@@ -21,6 +21,8 @@ public class Synth {
     OscSend gfxXmit;
     float rlsTime, atkTime;
 
+    0 => float glitch;
+
     fun void init(dur _baseNoteDur) {
         _baseNoteDur => baseNoteDur;
 
@@ -36,7 +38,7 @@ public class Synth {
 
         0.5 => sin.gain;
         0 => sqr.gain;
-        0 => saw.gain;
+        0.1 => saw.gain;
         0 => noise.gain;
 
         env.set(0.001, 0, 1, 0.001);
@@ -47,6 +49,8 @@ public class Synth {
 
     fun void setNote(int note) {
         Std.mtof(note) => float freq;
+        if (glitch)
+            ((Math.random2f(0, glitch) * 2) * freq) => freq;
 
         freq => sin.freq;
         freq => sqr.freq;
@@ -55,11 +59,14 @@ public class Synth {
     }
 
     fun void setDur(dur _dur) {
-        _dur => noteDur;
+        if (glitch)
+            ((Math.random2f(0, glitch) * 2) * _dur) => noteDur;
+        else
+            _dur => noteDur;
     }
 
     fun void setDur(int _len) {
-        _len * baseNoteDur => noteDur;
+        setDur(_len * baseNoteDur);
     }
 
     fun void setOscGain(int osc, int gain) {
@@ -77,22 +84,25 @@ public class Synth {
     }
 
     fun void setAttack(int atk) {
-        <<< atk >>>;
         env.attackTime((atk / 127.0) * noteDur);
-        <<< env.attackTime() >>>;
     }
 
     fun void setRelease(int rel) {
-        <<< rel >>>;
         env.releaseTime((rel / 127.0) * noteDur * 32);
-        <<< env.releaseTime() >>>;
+    }
+
+    fun void setGlitch(int level) {
+        level / 127.0 => glitch;
+        <<< glitch >>>;
+        if (glitch > 0) {
+            env.attackTime(0::ms);
+            env.releaseTime(0::ms);
+        }
     }
 
     fun void play(int _note, int _len) {
         setNote(_note);
         setDur(_len);
-
-        <<< "." >>>;
 
         spork ~ _play();
     }

@@ -18,6 +18,7 @@ fun void main() {
     spork ~ handleSynthGain();
     spork ~ handleSynthAttack();
     spork ~ handleSynthRelease();
+    spork ~ handleSynthGlitch();
 
     while (true) 1::second => now;
 }
@@ -78,7 +79,6 @@ fun void handleConductor() {
             while (oe.nextMsg() != 0) {
                 oe.getInt() => int note;
                 oe.getInt() => int len;
-                <<< note, len >>>;
                 synth.play(note, len);
             }
         }
@@ -143,6 +143,27 @@ fun void handleSynthRelease() {
             while (oe.nextMsg() != 0) {
                 oe.getInt() => int rel;
                 synth.setRelease(rel);
+            }
+        }
+    }
+}
+
+fun void handleSynthGlitch() {
+    // create an address in the receiver, store in new variable
+    recv.event("/player/synth/glitch, i") @=> OscEvent oe;
+
+    // infinite event loop
+    while (true) {
+        oe => now;
+
+
+        if (ready) {
+            // wait for event to arrive
+
+            // grab the next message from the queue.
+            while (oe.nextMsg() != 0) {
+                oe.getInt() => int level;
+                synth.setGlitch(level);
             }
         }
     }

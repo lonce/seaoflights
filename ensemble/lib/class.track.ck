@@ -21,6 +21,7 @@ public class Track {
     false => int isPlaying;
     true => int isMute;
     false => int isPhasing;
+    false => int isGlitching;
 
     0 => int offset;
 
@@ -58,6 +59,43 @@ public class Track {
     [[55, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
     wavesSeq[1].addMeasure(_measure);
 
+
+    /* MOVEMENT 3 */
+    Sequencer chordSeq[6];
+    for (0 => int i; i < chordSeq.cap(); i++)
+        chordSeq[i].init(12);
+
+    // C1
+    [[36, 16], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    chordSeq[0].addMeasure(_measure);
+
+    // C2
+    [[35, 16], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    chordSeq[1].addMeasure(_measure);
+
+    // C3
+    [[31, 16], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    chordSeq[2].addMeasure(_measure);
+
+    // C4
+    [[28, 16], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    chordSeq[3].addMeasure(_measure);
+
+    // C5
+    [[26, 16], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    chordSeq[4].addMeasure(_measure);
+
+    // C6
+    [[24, 16], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    chordSeq[5].addMeasure(_measure);
+
+    Sequencer phasingSeq[1];
+    for (0 => int i; i < phasingSeq.cap(); i++)
+        phasingSeq[i].init(12);
+
+    // full clapping rhythm
+    [[48, 1], [50, 1], [52, 1], [0, 1], [55, 1], [59, 1], [0, 1], [60, 1], [0, 1], [59, 1], [55, 1], [0, 1]] @=> _measure;
+    phasingSeq[0].addMeasure(_measure);
 
 
     fun void init(int _id, OscSend _xmit, float bpm, int beatNumber, int beatMeasure, int _offset) {
@@ -106,6 +144,16 @@ public class Track {
                 spork ~ _loadSequence(wavesSeq[0]);
             if (seqID == 1)
                 spork ~ _loadSequence(wavesSeq[1]);
+        }
+
+        // Movement 3.1: chords
+        if (seqType == 3) {
+            spork ~ _loadSequence(chordSeq[seqID]);
+        }
+
+        // Movement 3.2: phases
+        if (seqType == 4) {
+            spork ~ _loadSequence(phasingSeq[seqID]);
         }
     }
 
@@ -177,7 +225,6 @@ public class Track {
 
             if (seqLoaded && !isMute) {
                 if (sequence.hasNote()) {
-                    <<< id, "offset:", sequence.getOffset() >>>;
                     triggerPlayer(sequence.getNote(), sequence.getLength());
                 }
 
@@ -282,6 +329,7 @@ public class Track {
             metro.waitForMeasures(3);
             metro.updateBpm(originalBpm);
         }
+        <<< "end phase" >>>;
         false => isPhasing;
     }
 
@@ -298,7 +346,6 @@ public class Track {
         xmit.startMsg("/player/trigger", "i i");
         note => xmit.addInt;
         len => xmit.addInt;
-        <<< "." >>>;
     }
 
     fun void setSynthGain(int osc, int gain) {
@@ -320,5 +367,10 @@ public class Track {
         "/player/synth/release" => string path;
         xmit.startMsg(path, "i");
         rel => xmit.addInt;
+    }
+
+    fun void setSynthGlitch(int level) {
+        xmit.startMsg("/player/synth/glitch", "i");
+        level => xmit.addInt;
     }
 }

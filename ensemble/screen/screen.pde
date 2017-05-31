@@ -37,12 +37,10 @@ void setup() {
 }
 
 public void fadeIn(float dur) {
-  println("+");
   Ani.to(this, dur, "col", 100);
 }
 
 public void fadeOut(float dur) {
-  println("-");
   Ani.to(this, dur, "col", 0);
 }
 
