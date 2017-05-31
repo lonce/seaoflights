@@ -130,8 +130,7 @@ fun void handleSynthAttack() {
 
 fun void handleSynthRelease() {
     // create an address in the receiver, store in new variable
-    "/player/synth/release/" + id + ", " + "i" => string path;
-    recv.event(path) @=> OscEvent oe;
+    recv.event("/player/synth/release, i") @=> OscEvent oe;
 
     // infinite event loop
     while (true) {

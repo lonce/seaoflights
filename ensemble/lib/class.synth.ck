@@ -84,7 +84,7 @@ public class Synth {
 
     fun void setRelease(int rel) {
         <<< rel >>>;
-        env.releaseTime((rel / 127.0) * noteDur * 8);
+        env.releaseTime((rel / 127.0) * noteDur * 32);
         <<< env.releaseTime() >>>;
     }
 

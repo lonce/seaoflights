@@ -241,8 +241,7 @@ public class Track {
 
     fun void setSynthRelease(int rel) {
         "/player/synth/release" => string path;
-        xmit.startMsg(path, "i i");
-        id => xmit.addInt;
+        xmit.startMsg(path, "i");
         rel => xmit.addInt;
     }
 }
