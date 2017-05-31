@@ -1,0 +1,2 @@
+chuck   lib/class.interpolator.ck lib/class.metronome.ck lib/class.sequencer.ck lib/class.track.ck \
+        conductor.ck

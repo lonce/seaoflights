@@ -1,0 +1,10 @@
+trap killgroup SIGINT
+
+killgroup(){
+  echo player...
+  kill 0
+}
+
+processing-java --sketch=`pwd`/screen --run &
+chuck   lib/class.synth.ck \
+        player.ck:$1
