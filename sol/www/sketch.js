@@ -10,7 +10,7 @@
 
 var state = {
   clientId: -1,
-  seatingSection: "C",
+  seatingSection: "c",
   movement: -1
 };
 
@@ -30,7 +30,7 @@ function audienceInit() {
   alert("Please make sure your phone isn't silenced, and the volume is turned up.");
   alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
   alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
-  state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "");
+  state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
   globalMessageHandler(socket);
   socket.connect();
 }

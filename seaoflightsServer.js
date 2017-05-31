@@ -177,7 +177,7 @@ io.sockets.on("connection", function (socket) {
       socket.broadcast.emit("setADSR", adsr);
     } else if (data.scope === "section") {
       var ids = clientMap[data.target];
-      sectionParamMap[data.target].gain = adsr;
+      sectionParamMap[data.target].ADSR = adsr;
       if (ids) {
         ids.forEach(function(id) {
           clientSocketMap[id].emit("setADSR", adsr);

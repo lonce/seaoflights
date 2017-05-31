@@ -1,3 +1,4 @@
+//TODO: Add a cleanup function to the movements so they clear their own controls after they're done
 var firstMovement = {
   name: "1-) Tapping movement",
   init: function() {
@@ -50,8 +51,15 @@ var firstMovement = {
   }
 }
 
+var secondMovement = {
+  name: "2-) Drone movement",
+  init: function() {
+  }
+}
+
 var movements = [
-  firstMovement
+  firstMovement,
+  secondMovement
 ]
 
 
