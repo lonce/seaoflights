@@ -31,7 +31,7 @@ fun void setupNetwork() {
     recv.listen();
 
     OscSend send;
-    "localhost" => string host;
+    "Trijeet.local" => string host;
     if (me.arg(1) != "") me.arg(1) => host;
     send.setHost(host, 6000);
 
