@@ -10,7 +10,7 @@ var tap = {
     a: 0.01,
     d: 0.1,
     s: 1,
-    r: 0.5
+    r: 0.05
   },
   backgroundColors: {
     l: {H: 10, S: 50, B:80},
@@ -23,10 +23,26 @@ var tap = {
     qMax: 15,
     qMin: 0.001
   },
+  oscBank: {
+             l: [
+                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+                ],
+             c: [
+                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+                ],
+             r: [
+                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+                ],
+  },
   init: function(sock) {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
-    this.osc = new p5.SawOsc(440);
     this.env = new p5.Env();
     this.env.setADSR(
         this.initialADSR.a,
@@ -34,16 +50,29 @@ var tap = {
         this.initialADSR.s,
         this.initialADSR.r);
     this.env.setRange(1, 0);
-    this.osc.amp(this.env);
-    this.osc.start();
+    this.reverb = new p5.Reverb();
+    this.reverb.amp(8);
+    var self = this;
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc = new osc.type();
+      osc.osc.amp(self.env);
+      osc.osc.freq(osc.offset(440));
+      osc.osc.start();
+      osc.osc.disconnect();
+      self.reverb.process(osc.osc, 0.5, 0.8);
+    });
     this.bg = clientConfig.visual.bg;
     setShakeThreshold(this.shakeThreshold);
+    //alert("In this section, tap your phone to make a sound. Try to follow the conductor for your section and tap in unison with your audience members");
   },
   cleanup: function() {
-    this.osc.stop();
-    this.osc.dispose();
-    this.env.dispose();
-    this.meter.dispose();
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.stop();
+      if(osc.osc) osc.osc.dispose();
+    });
+    if(this.env) this.env.dispose();
+    if(this.meter) this.meter.dispose();
+    if(this.reverb) this.reverb.dispose();
   },
   draw: function() {
     background(0);
@@ -84,7 +113,11 @@ var tap = {
     self.setNote(note);
   },
   setNote: function(note) {
-    this.osc.freq(midiToFreq(note));
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      var freq = osc.offset(midiToFreq(note));
+      console.log("Setting osc freq to ", freq);
+      osc.osc.freq(freq);
+    });
   },
   setADSR: function(self, payload) {
     self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
@@ -112,22 +145,58 @@ var drone = {
     qMax: 15,
     qMin: 0.001
   },
+  oscBank: {
+             l: [
+                  {type: p5.TriOsc, offset: (freq) => {freq}, osc: null},
+                  {type: p5.TriOsc, offset: (freq) => {freq + freq/2}, osc: null},
+                  {type: p5.TriOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                ],
+             c: [
+                  {type: p5.SawOsc, offset: (freq) => {freq}, osc: null},
+                  {type: p5.SawOsc, offset: (freq) => {freq + freq/2}, osc: null},
+                  {type: p5.SawOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                ],
+             r: [
+                  {type: p5.SinOsc, offset: (freq) => {freq}, osc: null},
+                  {type: p5.SinOsc, offset: (freq) => {freq + freq/2}, osc: null},
+                  {type: p5.SinOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                ],
+  },
+  modFreq: 60,
+  modDepth: 100,
+  ampFreq: 1,
+  ampDepth: 1,
   init: function(sock) {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
-    this.osc = new p5.SawOsc(440);
-    this.filter = new p5.LowPass();
-    this.osc.disconnect();
-    this.osc.connect(this.filter);
-    this.osc.amp(1);
-    this.osc.start();
+    this.modOsc = new p5.SinOsc();
+    this.modOsc.start();
+    this.modOsc.disconnect();
+    this.modOsc.amp(this.modDepth);
+    this.modOsc.freq(this.modFreq);
+    this.reverb = new p5.Reverb();
+    this.reverb.amp(8);
+    var self = this;
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc = new osc.type();
+      osc.osc.amp(1);
+      osc.osc.freq(osc.offset(440));
+      osc.osc.start();
+      osc.osc.disconnect();
+      osc.osc.freq(self.modOsc);
+      self.reverb.process(osc.osc, 0.5, 0.8);
+    });
     this.bg = clientConfig.visual.bg;
   },
   cleanup: function() {
-    this.osc.stop();
-    this.osc.dispose();
-    this.filter.dispose();
-    this.meter.dispose();
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.stop();
+      if (osc.osc) osc.osc.dispose();
+    });
+    this.modOsc.stop();
+    if (this.modOsc) this.modOsc.dispose();
+    if (this.reverb) this.reverb.dispose();
+    if (this.meter) this.meter.dispose();
   },
   draw: function() {
     background(0);
@@ -148,23 +217,20 @@ var drone = {
     var self = this;
   },
   mute: function() {
-    this.osc.amp(0);
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.amp(0);
+    });
   },
   unmute: function() {
-    this.osc.amp(1);
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.amp(1);
+    });
   },
   setGain: function(gain) {
-    this.osc.amp(gain);
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.amp(gain);
+    });
   },
-  touchStarted: function() {
-    this.setFilter(mouseX/width, mouseY/height);
-  },
-  setFilter: function(x, y) {
-    var freq = x * this.filterParams.max + this.filterParams.min;
-    var res = (1-y) * this.filterParams.qMax + this.filterParams.qMin;
-    console.log("Filter set to ", freq, ", ", res);
-    this.filter.set(freq, res);
-  }
 }
 
 var glitch = {
@@ -179,6 +245,17 @@ var glitch = {
     qMax: 15,
     qMin: 0.001
   },
+  oscBank: {
+             l: [
+                  {type: p5.TriOsc, offset: (freq) => {freq}, osc: null}
+             ],
+             c: [
+                  {type: p5.SawOsc, offset: (freq) => {freq}, osc: null}
+                ],
+             r: [
+                  {type: p5.SinOsc, offset: (freq) => {freq}, osc: null}
+                ],
+  },
   baseFreq: 440,
   glitchFreq: 100,
   glitch: 0,
@@ -186,19 +263,26 @@ var glitch = {
   init: function(sock) {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
-    this.osc = new p5.SawOsc(this.baseFreq);
-    this.filter = new p5.LowPass();
-    this.osc.disconnect();
-    this.osc.connect(this.filter);
-    this.osc.amp(1);
-    this.osc.start();
+    this.reverb = new p5.Reverb();
+    this.reverb.amp(8);
+    var self = this;
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc = new osc.type();
+      osc.osc.amp(1);
+      osc.osc.freq(osc.offset(440));
+      osc.osc.start();
+      osc.osc.disconnect();
+      self.reverb.process(osc.osc, 0.5, 0.8);
+    });
     this.bg = clientConfig.visual.bg;
   },
   cleanup: function() {
-    this.osc.stop();
-    this.osc.dispose();
-    this.filter.dispose();
-    this.meter.dispose();
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.stop();
+      if (osc.osc) osc.osc.dispose();
+    });
+    if (this.filter) this.filter.dispose();
+    if (this.meter) this.meter.dispose();
   },
   draw: function() {
     background(0);
@@ -210,9 +294,11 @@ var glitch = {
     var thisThold = random(100);
     console.log("Glitch prob: ", glitchVal, " threshold:", thisThold);
     if(glitchVal > thisThold) {
+      var self = this;
       var randomOffset = random(-this.glitchOffset, this.glitchOffset)*this.glitch;
-      console.log("Glitched offset: ", randomOffset);
-      this.osc.freq(this.baseFreq + randomOffset);
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.freq(self.baseFreq + randomOffset);
+      });
       bgColor = color(
           baseColor.H + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
           baseColor.S + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
@@ -235,12 +321,6 @@ var glitch = {
     sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
     sock.on("setGlitchFreq", function(payload) {self.setGlitchFreq(self, payload)});
   },
-  deviceMoved: function() {
-    console.log("device moved");
-    var x = (rotationX + 180)/360;
-    var y = (rotationY + 180)/360;
-    setFilter(x, y);
-  },
   setNote: function(self, payload) {
     self.baseFreq = midiToFreq(payload.note);
   },
@@ -252,20 +332,20 @@ var glitch = {
     self.glitchFreq = payload.glitchFreq;
   },
   mute: function() {
-    this.osc.amp(0);
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.amp(0);
+    });
   },
   unmute: function() {
-    this.osc.amp(1);
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.amp(1);
+    });
   },
   setGain: function(gain) {
-    this.osc.amp(gain);
+    this.oscBank[state.seatingSection].forEach(function(osc) {
+      osc.osc.amp(gain);
+    });
   },
-  setFilter: function(x, y) {
-    var freq = x * this.filterParams.max + this.filterParams.min;
-    var res = (1-y) * this.filterParams.qMax + this.filterParams.qMin;
-    console.log("Filter set to ", freq, ", ", res);
-    this.filter.set(freq, res);
-  }
 }
 
 var shakey = {
@@ -280,12 +360,12 @@ var shakey = {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
-    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {console.log("sample loaded")});
+    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
     this.sound.playMode('restart');
     setShakeThreshold(this.shakeThreshold);
   },
   cleanup: function() {
-    this.meter.dispose();
+    if(this.meter) this.meter.dispose();
   },
   draw: function() {
     background(0);
@@ -316,6 +396,7 @@ var shakey = {
   deviceShaken: function() {
    console.log("Shaken!");
    if (this.sound.isLoaded()) {
+     console.log("Play sound");
      this.sound.play();
    }
   }
@@ -327,5 +408,4 @@ var movements = [
   glitch,
   shakey
 ]
-
 

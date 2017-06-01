@@ -27,9 +27,9 @@ function globalMessageHandler(sock) {
 
 function audienceInit() {
   // TODO: Make these pretty
-  alert("Please make sure your phone isn't silenced, and the volume is turned up.");
-  alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
-  alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
+  //alert("Please make sure your phone isn't silenced, and the volume is turned up.");
+  //alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
+  //alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
   state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
   globalMessageHandler(socket);
   socket.connect();
@@ -82,14 +82,19 @@ function setGain(data) {
 }
 
 function setMovement(data) {
+  if (state.movement && state.movementId === data.movement) {
+    state.movement.cleanup();
+    state.movement.init(socket);
+    return;
+  }
   if (state.movement && state.movement.cleanup) {
     state.movement.cleanup();
   };
   state.movement = null;
-  var movement = parseInt(data.movement);
   movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
   state.movement = movements[data.movement];
+  state.movementId = data.movement;
 }
 
 function setup() {
@@ -100,33 +105,33 @@ function setup() {
 }
 
 function draw() {
-  if (state.movement.draw) {
+  if (state.movement && state.movement.draw) {
     state.movement.draw();
   }
 }
 function touchStarted() {
-  if(state.movement.touchStarted) {
+  if(state.movement && state.movement.touchStarted) {
     state.movement.touchStarted();
   }
   return false;
 }
 
 function touchEnded() {
-  if(state.movement.touchEnded) {
+  if(state.movement && state.movement.touchEnded) {
     state.movement.touchEnded();
   }
   return false;
 }
 
 function deviceShaken() {
-  if(state.movement.deviceShaken) {
+  if(state.movement && state.movement.deviceShaken) {
     state.movement.deviceShaken();
   }
   return false;
 }
 
 function deviceMoved() {
-  if(state.movement.deviceMoved) {
+  if(state.movement && state.movement.deviceMoved) {
     state.movement.deviceMoved();
   }
 }

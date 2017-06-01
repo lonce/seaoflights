@@ -119,5 +119,3 @@ var movements = [
   glitch,
   shakey
 ]
-
-
