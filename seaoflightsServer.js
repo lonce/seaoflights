@@ -189,6 +189,13 @@ io.sockets.on("connection", function (socket) {
       console.log("setGain message without scope, ignoring");
     }
   });
+  socket.on("setGlitch", function(data) {
+    sectionParamMap['l'].glitch = data.glitch;
+    sectionParamMap['c'].glitch = data.glitch;
+    sectionParamMap['r'].glitch = data.glitch;
+    console.log("Setting glitch to ", data.glitch);
+    socket.broadcast.emit("setGlitch", data);
+  });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
     dropClient(socket.myID);

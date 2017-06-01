@@ -82,6 +82,9 @@ function setGain(data) {
 }
 
 function setMovement(data) {
+  if (state.movement && state.movement.cleanup) {
+    state.movement.cleanup();
+  };
   state.movement = null;
   var movement = parseInt(data.movement);
   movements[data.movement].init(socket);

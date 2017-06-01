@@ -1,12 +1,11 @@
-//TODO: Add a cleanup function to the movements so they clear their own controls after they're done
-var firstMovement = {
+var tapping = {
   name: "1-) Tapping movement",
   init: function() {
     var table = $('#sectionsTable');
-    var sliders = $("<tr class='adsr-sliders'><td>A</br>D</br>S</br>R</td><td><div class='a-slider' data-scope='section' data-target='l' data-param='a'></div><div class='d-slider' data-scope='section' data-target='l' data-param='d'></div><div class='s-slider' data-scope='section' data-target='l' data-param='s'></div><div class='r-slider' data-scope='section' data-target='l' data-param='r'></div></td><td><div class='a-slider' data-scope='section' data-target='c' data-param='a'></div><div class='d-slider' data-scope='section' data-target='c' data-param='d'></div><div class='s-slider' data-scope='section' data-target='c' data-param='s'></div><div class='r-slider' data-scope='section' data-target='c' data-param='r'></div></td><td><div class='a-slider' data-scope='section' data-target='r' data-param='a'></div><div class='d-slider' data-scope='section' data-target='r' data-param='d'></div><div class='s-slider' data-scope='section' data-target='r' data-param='s'></div><div class='r-slider' data-scope='section' data-target='r' data-param='r'></div></td></tr>");
+    var sliders = $("<tr class='adsr-sliders tap-mv'><td>A</br>D</br>S</br>R</td><td><div class='a-slider' data-scope='section' data-target='l' data-param='a'></div><div class='d-slider' data-scope='section' data-target='l' data-param='d'></div><div class='s-slider' data-scope='section' data-target='l' data-param='s'></div><div class='r-slider' data-scope='section' data-target='l' data-param='r'></div></td><td><div class='a-slider' data-scope='section' data-target='c' data-param='a'></div><div class='d-slider' data-scope='section' data-target='c' data-param='d'></div><div class='s-slider' data-scope='section' data-target='c' data-param='s'></div><div class='r-slider' data-scope='section' data-target='c' data-param='r'></div></td><td><div class='a-slider' data-scope='section' data-target='r' data-param='a'></div><div class='d-slider' data-scope='section' data-target='r' data-param='d'></div><div class='s-slider' data-scope='section' data-target='r' data-param='s'></div><div class='r-slider' data-scope='section' data-target='r' data-param='r'></div></td></tr>");
     table.append(sliders);
     var globalCtrl = $('.generalControls');
-    var generalSliders = $("<div class='a-slider' data-scope='all' data-target='' data-param='a'></div><div class='d-slider' data-scope='all' data-target='' data-param='d'></div><div class='s-slider' data-scope='all' data-target='' data-param='s'></div><div class='r-slider' data-scope='all' data-target='' data-param='r'></div>");
+    var generalSliders = $("<div class='tap-mv'><div class='a-slider' data-scope='all' data-target='' data-param='a'></div><div class='d-slider' data-scope='all' data-target='' data-param='d'></div><div class='s-slider' data-scope='all' data-target='' data-param='s'></div><div class='r-slider' data-scope='all' data-target='' data-param='r'></div></div>");
     console.log("Tapping movement initialized conductor side");
     globalCtrl.append(generalSliders);
     $('.a-slider').slider({
@@ -48,18 +47,46 @@ var firstMovement = {
       console.log("Update ", scope, " ", target, " attack:", atk, " decay:", dec, " sus:", sus, " release:", rel);
       socket.emit('setADSR', {scope: scope, target: target, a: atk, d: dec, s: sus, r: rel});
     }
+  },
+  cleanup: function() {
+     $('.tap-mv').remove();
   }
 }
 
-var secondMovement = {
+var drone = {
   name: "2-) Drone movement",
   init: function() {
+  },
+  cleanup: function() {
+  }
+}
+
+var glitch = {
+  name: "3-) Glitch movement",
+  init: function() {
+    var glitchSlider = $("<div class='glitch-slider glitch-mv'></div>");
+    $('.generalControls').append(glitchSlider);
+    $('.glitch-slider').slider({
+      min: 0,
+      max: 1,
+      value: 0,
+      step: 0.01,
+      change: function(event, ui) {
+        var glitchVal = parseFloat(ui.value);
+        console.log("Setting glitch to ", glitchVal);
+        socket.emit('setGlitch', {glitch: glitchVal});
+      }
+    });
+  },
+  cleanup: function() {
+    $('.glitch-mv').remove();
   }
 }
 
 var movements = [
-  firstMovement,
-  secondMovement
+  tapping,
+  drone,
+  glitch
 ]
 
 

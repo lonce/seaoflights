@@ -1,5 +1,6 @@
 var socket = io();
 var clientId = -1;
+var currentMovement = null;
 $(document).ready(function() {
   socket.connect();
   socket.on("init", function(data) {
@@ -56,10 +57,14 @@ $(document).ready(function() {
 });
 
 function setMovement(ev) {
+    if (currentMovement) {
+      currentMovement.cleanup();
+    }
     var el = $(ev.target)[0];
     console.log("Setting movement to ", el.id);
     $('.controls .movements ul li').removeClass('active');
     $(el).parent().addClass('active');
-    movements[el.id].init();
+    currentMovement = movements[el.id];
+    currentMovement.init();
     socket.emit('changeMovement', {movement: el.id});
 }
