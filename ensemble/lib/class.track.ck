@@ -23,6 +23,8 @@ public class Track {
     false => int isPhasing;
     false => int isGlitching;
 
+    true => int isAwake;
+
     0 => int offset;
 
     /* SEQUENCES */
@@ -97,6 +99,15 @@ public class Track {
     [[48, 1], [50, 1], [52, 1], [0, 1], [55, 1], [59, 1], [0, 1], [60, 1], [0, 1], [59, 1], [55, 1], [0, 1]] @=> _measure;
     phasingSeq[0].addMeasure(_measure);
 
+    /* MOVEMENT 4 */
+    Sequencer bassSeq[1];
+    for (0 => int i; i < bassSeq.cap(); i++)
+        bassSeq[i].init(16);
+
+    // B1
+    [[36, 2], [0, 1], [0, 1], [0, 1], [34, 2], [0, 1], [0, 1], [0, 1], [32, 1], [0, 1], [39, 1], [0, 1], [38, 2], [0, 1], [0, 1], [0, 1]] @=> _measure;
+    bassSeq[0].addMeasure(_measure);
+
 
     fun void init(int _id, OscSend _xmit, float bpm, int beatNumber, int beatMeasure, int _offset) {
         _id => id;
@@ -155,6 +166,10 @@ public class Track {
         if (seqType == 4) {
             spork ~ _loadSequence(phasingSeq[seqID]);
         }
+        // Movement 4: rebirth
+        if (seqType == 5) {
+            spork ~ _loadSequence(bassSeq[seqID]);
+        }
     }
 
     fun void _loadSequence(Sequencer seq) {
@@ -188,7 +203,6 @@ public class Track {
         while (true) {
             if (seqLoaded) {
                 if (sequence.hasNote()) {
-                    <<< id, "offset:", sequence.getOffset() >>>;
                     triggerPlayer(sequence.getNote(), sequence.getLength());
                 }
 
@@ -225,7 +239,8 @@ public class Track {
 
             if (seqLoaded && !isMute) {
                 if (sequence.hasNote()) {
-                    triggerPlayer(sequence.getNote(), sequence.getLength());
+                    if (isAwake)
+                        triggerPlayer(sequence.getNote(), sequence.getLength());
                 }
 
                 sequence.tick() => int playhead;
@@ -350,16 +365,14 @@ public class Track {
 
     fun void setSynthGain(int osc, int gain) {
         "/player/synth/gain" => string path;
-        xmit.startMsg(path, "i i i");
-        id => xmit.addInt;
+        xmit.startMsg(path, "i i");
         osc => xmit.addInt;
         gain => xmit.addInt;
     }
 
     fun void setSynthAttack(int atk) {
         "/player/synth/attack" => string path;
-        xmit.startMsg(path, "i i");
-        id => xmit.addInt;
+        xmit.startMsg(path, "i");
         atk => xmit.addInt;
     }
 

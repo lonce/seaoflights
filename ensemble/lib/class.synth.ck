@@ -93,7 +93,6 @@ public class Synth {
 
     fun void setGlitch(int level) {
         level / 127.0 => glitch;
-        <<< glitch >>>;
         if (glitch > 0) {
             env.attackTime(0::ms);
             env.releaseTime(0::ms);
@@ -109,6 +108,7 @@ public class Synth {
 
     fun void _play() {
         gfxFadeIn();
+        <<< "." >>>;
         env.keyOn();
         noteDur => now;
         gfxFadeOut();

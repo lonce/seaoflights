@@ -152,16 +152,22 @@ fun void handleMIDI() {
                     for (0 => int i; i < leftSection.cap(); i++) {
                         leftSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[id].setSynthAttack(64);
+                        _tracks[id].setSynthRelease(64);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[id].setSynthAttack(64);
+                        _tracks[id].setSynthRelease(64);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[id].setSynthAttack(64);
+                        _tracks[id].setSynthRelease(64);
                     }
 
                     _tracks @=> tracks;
@@ -185,16 +191,22 @@ fun void handleMIDI() {
                         leftSection[i] => int id;
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[id].setSynthAttack(12);
+                        _tracks[id].setSynthRelease(30);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 1);
+                        _tracks[id].setSynthAttack(12);
+                        _tracks[id].setSynthRelease(30);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 2);
+                        _tracks[id].setSynthAttack(12);
+                        _tracks[id].setSynthRelease(30);
                     }
 
                     _tracks @=> tracks;
@@ -218,19 +230,50 @@ fun void handleMIDI() {
                         droneSection[i] => int id;
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[id].setSynthAttack(64);
+                        _tracks[id].setSynthRelease(127);
                     }
                     <<< "Initialing upper section" >>>;
                     for (0 => int i; i < upperSection.cap(); i++) {
                         upperSection[i] => int id;
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-
+                        _tracks[id].setSynthAttack(6);
+                        _tracks[id].setSynthRelease(12);
                     }
                     <<< "Initialing lower section" >>>;
                     for (0 => int i; i < lowerSection.cap(); i++) {
                         lowerSection[i] => int id;
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[id].setSynthAttack(6);
+                        _tracks[id].setSynthRelease(12);
+                    }
+
+                    _tracks @=> tracks;
+                }
+            }
+
+            // MOVEMENT 4 init
+            if ((msg.data1 == 179) && (msg.data2 >= 16) && (msg.data2 <= 23)) {
+                if (movement != 4) {
+                    4 => movement;
+
+                    40 => float bpm;
+                    16 => int beatNumber;
+                    8 => int beatMeasure;
+
+                    Track _tracks[12];
+
+                    <<< "MOVEMENT 3: Rebirth" >>>;
+                    <<< "Initialing section" >>>;
+                    for (0 => int i; i < tracks.cap(); i++) {
+                        _tracks[i].init(i, xmitters[i], bpm, beatNumber, beatMeasure, 0);
+                        _tracks[i].loadSequence(5, 0);
+                        _tracks[i].unmute();
+                        _tracks[i].setSynthAttack(60);
+                        _tracks[i].setSynthRelease(60);
+                        false => _tracks[i].isAwake;
                     }
 
                     _tracks @=> tracks;
@@ -393,6 +436,33 @@ fun void handleMIDI() {
                     for (int i; i < tracks.cap(); i++)
                         tracks[i].mute();
                 }
+            }
+
+            // MOVEMENT 4 CC
+            if (movement == 4) {
+                if (msg.data2 == 53) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 150)) {
+                        true => tracks[5 + msg.data1 - 144].isAwake;
+                    }
+                }
+                if (msg.data2 == 54) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 148)) {
+                        true => tracks[msg.data1 - 144].isAwake;
+                    }
+                }
+
+                // mute
+                if ((msg.data2 == 92) && (msg.data1 == 144)) {
+                    for (int i; i < tracks.cap(); i++)
+                        tracks[i].mute();
+                }
+            }
+
+            // SYNTH CC
+            // set osc gain
+            if ((msg.data2 >= 52) && (msg.data2 <= 55)) {
+                for (int i; i < tracks.cap(); i++)
+                    tracks[i].setSynthGain(msg.data2 - 52, msg.data3);
             }
 
             /*if ((msg.data1 >= 176) && (msg.data1 <= 181)) {

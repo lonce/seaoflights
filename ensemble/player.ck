@@ -87,8 +87,7 @@ fun void handleConductor() {
 
 fun void handleSynthGain() {
     // create an address in the receiver, store in new variable
-    "/player/synth/gain/" + id + ", " + "i, i" => string path;
-    recv.event(path) @=> OscEvent oe;
+    recv.event("/player/synth/gain, i i") @=> OscEvent oe;
 
     // infinite event loop
     while (true) {
@@ -109,8 +108,7 @@ fun void handleSynthGain() {
 
 fun void handleSynthAttack() {
     // create an address in the receiver, store in new variable
-    "/player/synth/attack/" + id + ", " + "i" => string path;
-    recv.event(path) @=> OscEvent oe;
+    recv.event("/player/synth/attack, i") @=> OscEvent oe;
 
     // infinite event loop
     while (true) {
