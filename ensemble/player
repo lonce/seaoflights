@@ -5,6 +5,6 @@ killgroup(){
   kill 0
 }
 
-processing-java --sketch=`pwd`/screen --run &
+open `pwd`/screen/application.macosx/screen.app &
 chuck   lib/class.synth.ck \
         player.ck:$1
