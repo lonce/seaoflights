@@ -1,5 +1,22 @@
+var sampleFiles = [
+  "assets/bowl.wav",
+  "assets/lg-bell.wav",
+  "assets/md-bell.wav",
+  "assets/sm-bell.wav"
+];
+
+/*
+var samples = [];
+
+function preload() {
+  sampleFiles.forEach(function(path) {
+    var sound = loadSound(sampleFiles[path]);
+    samples.push(sound);
+  });
+}
+*/
+
 var tap = {
-  shakeThreshold: 20,
   initialADSR: {
     a: 0.01,
     d: 0.1,
@@ -279,10 +296,65 @@ var glitch = {
   }
 }
 
+var shakey = {
+  shakeThreshold: 20,
+  backgroundColors: {
+    l: {H: 10, S: 50, B:80},
+    c: {H: 40, S: 50, B: 80},
+    r: {H: 70, S: 50, B:80}
+  },
+  init: function(sock) {
+    var self = this;
+    this.messageHandler(sock);
+    this.meter = new p5.Amplitude();
+    this.bg = clientConfig.visual.bg;
+    //this.sound = samples[state.clientId % samples.length];
+    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length]);
+    this.sound.playMode('restart');
+    setShakeThreshold(this.shakeThreshold);
+  },
+  cleanup: function() {
+    this.meter.dispose();
+  },
+  draw: function() {
+    background(0);
+    var level = this.meter.getLevel();
+    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+    var baseColor = this.backgroundColors[state.seatingSection];
+    var bgColor = color(
+        baseColor.H,
+        baseColor.S,
+        baseColor.B,
+        bgAlpha);
+
+    noStroke();
+    fill(bgColor);
+    rect(0, 0, width, height);
+  },
+  messageHandler: function(sock) {
+  },
+  mute: function() {
+    this.sound.setVolume(0);
+  },
+  unmute: function() {
+    this.sound.setVolume(1);
+  },
+  setGain: function(gain) {
+    this.sound.setVolume(gain);
+  },
+  deviceShaken: function() {
+   console.log("Shaken!");
+   if (this.sound.isLoaded()) {
+     this.sound.play();
+   }
+  }
+}
+
 var movements = [
   tap,
   drone,
-  glitch
+  glitch,
+  shakey
 ]
 
 
