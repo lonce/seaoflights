@@ -1,0 +1,10 @@
+trap killgroup SIGINT
+
+killgroup(){
+  echo player...
+  kill 0
+}
+
+open `pwd`/screen/application.macosx/screen.app &
+chuck   lib/class.synth.ck \
+        player.ck:$1
