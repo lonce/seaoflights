@@ -61,10 +61,10 @@ fun void initNetwork() {
     6449 => int port;
 
     // xmitters - inner ring L -> R, outer ring R -> L
-    HOSTS << "localhost";       // L1: 0
+    HOSTS << "kimchi.local";       // L1: 0
     HOSTS << "localhost";       // L2: 1
-    HOSTS << "localhost";       // C1: 2
-    HOSTS << "localhost";       // R1: 3
+    HOSTS << "quinoa.local";       // C1: 2
+    HOSTS << "tiramisu.local";       // R1: 3
     HOSTS << "localhost";       // R2: 4
     HOSTS << "localhost";       // R3: 5
     HOSTS << "localhost";       // R4: 6
@@ -141,7 +141,7 @@ fun void handleMIDI() {
                 if (movement != 1) {
                     1 => movement;
 
-                    100 => float bpm;
+                    60 => float bpm;
                     8 => int beatNumber;
                     8 => int beatMeasure;
 
@@ -152,22 +152,22 @@ fun void handleMIDI() {
                     for (0 => int i; i < leftSection.cap(); i++) {
                         leftSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(64);
-                        _tracks[id].setSynthRelease(64);
+                        _tracks[id].setSynthAttack(12);
+                        _tracks[id].setSynthRelease(24);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(64);
-                        _tracks[id].setSynthRelease(64);
+                        _tracks[id].setSynthAttack(12);
+                        _tracks[id].setSynthRelease(24);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(64);
-                        _tracks[id].setSynthRelease(64);
+                        _tracks[id].setSynthAttack(12);
+                        _tracks[id].setSynthRelease(24);
                     }
 
                     _tracks @=> tracks;
@@ -191,22 +191,22 @@ fun void handleMIDI() {
                         leftSection[i] => int id;
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(24);
+                        _tracks[id].setSynthAttack(6);
+                        _tracks[id].setSynthRelease(6);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 1);
-                        _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(24);
+                        _tracks[id].setSynthAttack(6);
+                        _tracks[id].setSynthRelease(6);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 2);
-                        _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(24);
+                        _tracks[id].setSynthAttack(6);
+                        _tracks[id].setSynthRelease(6);
                     }
 
                     _tracks @=> tracks;
@@ -329,7 +329,7 @@ fun void handleMIDI() {
             // MOVEMENT 2 CC
             if (movement == 2) {
                 if (msg.data2 == 53) {
-                    if ((msg.data1 >= 144) && (msg.data1 <= 145)) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 147)) {
                         for (int i; i < tracks.cap(); i++) {
                             tracks[i].runSequence(2, msg.data1 - 144);
                         }

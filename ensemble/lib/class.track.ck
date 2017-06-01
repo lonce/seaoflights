@@ -36,20 +36,20 @@ public class Track {
         tappingSeq[i].init(8);
 
     // TS 1
-    [[36, 1], [48, 1], [48, 1], [48, 1], [36, 1], [48, 1], [48, 1], [48, 1]] @=> _measure;
+    [[48, 1], [0, 0], [48, 1], [0, 0], [48, 1], [0, 0], [48, 1], [0, 0]] @=> _measure;
     tappingSeq[0].addMeasure(_measure);
 
 
     // TS 2
-    [[40, 1], [52, 1], [52, 1], [52, 1], [40, 1], [52, 1], [52, 1], [52, 1]] @=> _measure;
+    [[40, 1], [40, 1], [40, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
     tappingSeq[1].addMeasure(_measure);
 
     // TS 3
-    [[33, 1], [45, 1], [45, 1], [45, 1], [33, 1], [45, 1], [45, 1], [45, 1]] @=> _measure;
+    [[55, 1], [0, 0], [0, 0], [0, 0], [55, 1], [55, 1], [0, 0], [0, 0]] @=> _measure;
     tappingSeq[2].addMeasure(_measure);
 
     /* MOVEMENT 2 */
-    Sequencer wavesSeq[2];
+    Sequencer wavesSeq[4];
     for (0 => int i; i < wavesSeq.cap(); i++)
         wavesSeq[i].init(6);
 
@@ -60,6 +60,14 @@ public class Track {
     // W 2
     [[55, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
     wavesSeq[1].addMeasure(_measure);
+
+    // W 3
+    [[53, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
+    wavesSeq[2].addMeasure(_measure);
+
+    // W 4
+    [[57, 1], [0, 0], [0, 0], [0, 0], [0, 0], [0, 0]] @=> _measure;
+    wavesSeq[3].addMeasure(_measure);
 
 
     /* MOVEMENT 3 */
@@ -141,20 +149,12 @@ public class Track {
 
         // Movement 1: tapping
         if (seqType == 1) {
-            if (seqID == 0)
-                spork ~ _loadSequence(tappingSeq[0]);
-            if (seqID == 1)
-                spork ~ _loadSequence(tappingSeq[1]);
-            if (seqID == 2)
-                spork ~ _loadSequence(tappingSeq[2]);
+            spork ~ _loadSequence(tappingSeq[seqID]);
         }
 
         // Movement 2: waves
         if (seqType == 2) {
-            if (seqID == 0)
-                spork ~ _loadSequence(wavesSeq[0]);
-            if (seqID == 1)
-                spork ~ _loadSequence(wavesSeq[1]);
+            spork ~ _loadSequence(wavesSeq[seqID]);
         }
 
         // Movement 3.1: chords
@@ -184,15 +184,12 @@ public class Track {
 
     fun void runSequence(int seqType, int seqID) {
         if (seqType == 2) {
-            if (seqID == 0)
-                spork ~ _runSequence(wavesSeq[0]);
-            if (seqID == 1)
-                spork ~ _runSequence(wavesSeq[1]);
+            spork ~ _runSequence(wavesSeq[seqID]);
         }
     }
 
     fun void _runSequence(Sequencer seq) {
-        metro.measureTick => now;
+        /*metro.measureTick => now;*/
         // Movement 2: waves
         false => seqLoaded;
         seq @=> sequence;
