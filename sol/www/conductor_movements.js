@@ -1,3 +1,59 @@
+var nosection = {
+  name: "0-) Initial movement(no sections)",
+  init: function() {
+    var globalCtrl = $('.generalControls');
+    var generalSliders = $("<div class='nosec-mv'><div class='a-slider' data-scope='all' data-target='' data-param='a'></div><div class='d-slider' data-scope='all' data-target='' data-param='d'></div><div class='s-slider' data-scope='all' data-target='' data-param='s'></div><div class='r-slider' data-scope='all' data-target='' data-param='r'></div></div>");
+    console.log("Tapping movement initialized conductor side");
+    globalCtrl.append(generalSliders);
+    $('.a-slider').slider({
+      min: 0,
+      max: 2,
+      value: 0.05,
+      step: 0.01,
+      change: updateADSR
+    });
+    $('.d-slider').slider({
+      min: 0,
+      max: 2,
+      value: 0.05,
+      step: 0.01,
+      change: updateADSR
+    });
+    $('.s-slider').slider({
+      min: 0,
+      max: 1,
+      value: 1,
+      step: 0.01,
+      change: updateADSR
+    });
+    $('.r-slider').slider({
+      min: 0,
+      max: 10,
+      value: 0.1,
+      step: 0.05,
+      change: updateADSR
+    });
+    var seatingBtn = $("<button class='nosec-mv'>Get Seating</button>");
+    seatingBtn.on('click', function() {
+      socket.emit("getSeating", {});
+    });
+    globalCtrl.append(seatingBtn);
+    function updateADSR(event, ui) {
+      var sliderCell = $(ui.handle).parent().parent();
+      var atk = parseFloat(sliderCell.children('.a-slider').slider("option", "value"));
+      var dec = parseFloat(sliderCell.children('.d-slider').slider("option", "value"));
+      var sus = parseFloat(sliderCell.children('.s-slider').slider("option", "value"));
+      var rel = parseFloat(sliderCell.children('.r-slider').slider("option", "value"));
+      var scope = $(ui.handle).parent().data("scope");
+      var target = $(ui.handle).parent().data("target");
+      console.log("Update ", scope, " ", target, " attack:", atk, " decay:", dec, " sus:", sus, " release:", rel);
+      socket.emit('setADSR', {scope: scope, target: target, a: atk, d: dec, s: sus, r: rel});
+    };
+  },
+  cleanup: function() {
+    $('.nosec-mv').remove();
+  }
+}
 var tapping = {
   name: "1-) Tapping movement",
   chords: [
@@ -114,6 +170,7 @@ var shakey = {
 };
 
 var movements = [
+  nosection,
   tapping,
   drone,
   glitch,

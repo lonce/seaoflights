@@ -8,16 +8,19 @@
  * seating section. If this is correct, the initial handshake is done.
  */
 
+var socket = io();
+
 var state = {
   clientId: -1,
-  seatingSection: "c",
-  movement: -1
+  seatingSection: null,
+  movementId: 0,
+  movement: null
 };
 
-var socket = io();
 
 function globalMessageHandler(sock) {
   sock.on("init", initClient);
+  sock.on("getSeating", getSeating);
   sock.on("seatingAck", seatingCheck);
   sock.on("mute", muteClient);
   sock.on("unmute", unmuteClient);
@@ -30,14 +33,17 @@ function audienceInit() {
   //alert("Please make sure your phone isn't silenced, and the volume is turned up.");
   //alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
   //alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
-  state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
   globalMessageHandler(socket);
   socket.connect();
 }
 
 function initClient(data) {
   state.clientId = data.clientId;
-  console.log("Server initialized this client with the id ", state.clientId, ", responding with the seating section info, ", state.seatingSection);
+  console.log("Server initialized this client with the id ", state.clientId);
+}
+
+function getSeating(data) {
+  state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
   socket.emit("setLocation", {seatingSection: state.seatingSection});
 }
 
@@ -100,6 +106,9 @@ function setMovement(data) {
 function setup() {
   frameRate(32);
   audienceInit();
+  state.movement = movements[0];
+  state.movement.init(socket);
+  state.movementId = 0;
   colorMode(HSB, 100, 100, 100, 1);
   createCanvas(windowWidth, windowHeight);
 }

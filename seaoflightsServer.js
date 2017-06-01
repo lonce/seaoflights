@@ -203,6 +203,10 @@ io.sockets.on("connection", function (socket) {
     console.log("Setting chord to ", data.chord);
     socket.broadcast.emit("setChord", data);
   });
+  socket.on("getSeating", function(data) {
+    console.log("Get seating");
+    socket.broadcast.emit("getSeating", data);
+  });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
     dropClient(socket.myID);

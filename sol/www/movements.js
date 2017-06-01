@@ -5,6 +5,97 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
+var nosection = {
+  initialADSR: {
+                 a: 0.01,
+                 d: 0.1,
+                 s: 1,
+                 r: 0.05
+               },
+  backgroundColor: {H: 10, S: 50, B:80},
+  oscBank: [
+    {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
+    {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+    {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+  ],
+  init: function(sock) {
+      this.messageHandler(sock);
+      this.meter = new p5.Amplitude();
+      this.env = new p5.Env();
+      this.env.setADSR(
+          this.initialADSR.a,
+          this.initialADSR.d,
+          this.initialADSR.s,
+          this.initialADSR.r);
+      this.env.setRange(1, 0);
+      this.reverb = new p5.Reverb();
+      this.reverb.amp(8);
+      var self = this;
+      this.oscBank.forEach(function(osc) {
+        osc.osc = new osc.type();
+        osc.osc.amp(self.env);
+        osc.osc.freq(osc.offset(440));
+        osc.osc.start();
+        osc.osc.disconnect();
+        self.reverb.process(osc.osc, 0.5, 0.8);
+      });
+      this.bg = clientConfig.visual.bg;
+    },
+    cleanup: function() {
+               this.oscBank.forEach(function(osc) {
+                 osc.osc.stop();
+                 if(osc.osc) osc.osc.dispose();
+               });
+               if(this.env) this.env.dispose();
+               if(this.meter) this.meter.dispose();
+               if(this.reverb) this.reverb.dispose();
+             },
+    draw: function() {
+            background(0);
+            var level = this.meter.getLevel();
+            var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+            var baseColor = this.backgroundColor;
+            var bgColor = color(
+                baseColor.H,
+                baseColor.S,
+                baseColor.B,
+                bgAlpha);
+
+            noStroke();
+            fill(bgColor);
+            rect(0, 0, width, height);
+          },
+    messageHandler: function(sock) {
+                      var self = this;
+                      sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
+    },
+    touchStarted: function() {
+                    this.noteOff();
+                    this.noteOn();
+                  },
+    touchEnded: function() {
+                  this.noteOff();
+                },
+    noteOn: function() {
+              this.env.triggerAttack();
+            },
+    noteOff: function() {
+               this.env.triggerRelease();
+             },
+    setADSR: function(self, payload) {
+               self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+             },
+    mute: function() {
+            this.env.mult(0);
+          },
+    unmute: function() {
+              this.env.mult(1);
+            },
+    setGain: function(gain) {
+               this.env.mult(gain);
+             }
+}
+
 var tap = {
   initialADSR: {
     a: 0.01,
@@ -62,7 +153,6 @@ var tap = {
       self.reverb.process(osc.osc, 0.5, 0.8);
     });
     this.bg = clientConfig.visual.bg;
-    setShakeThreshold(this.shakeThreshold);
     //alert("In this section, tap your phone to make a sound. Try to follow the conductor for your section and tap in unison with your audience members");
   },
   cleanup: function() {
@@ -403,6 +493,7 @@ var shakey = {
 }
 
 var movements = [
+  nosection,
   tap,
   drone,
   glitch,
