@@ -83,10 +83,26 @@ var glitch = {
   }
 }
 
+var shakey = {
+  name: "4-) Shaking bells movement",
+  init: function() {
+    var bellButton = $("<button class='shake-mv'>Send samples</button>");
+    bellButton.on('click', function() {
+      console.log("Sending sample init to clients");
+      socket.emit('loadSamples', {});
+    });
+    $('.generalControls').append(bellButton);
+  },
+  cleanup: function() {
+    $('.shake-mv').remove();
+  }
+};
+
 var movements = [
   tapping,
   drone,
-  glitch
+  glitch,
+  shakey
 ]
 
 
