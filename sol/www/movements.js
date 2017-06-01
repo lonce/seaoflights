@@ -1,8 +1,8 @@
 var sampleFiles = [
-  "assets/bowl.wav",
-  "assets/lg-bell.wav",
-  "assets/md-bell.wav",
-  "assets/sm-bell.wav"
+  "assets/bowl.mp3",
+  "assets/lg-bell.mp3",
+  "assets/md-bell.mp3",
+  "assets/sm-bell.mp3"
 ];
 
 /*
