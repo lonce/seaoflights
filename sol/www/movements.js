@@ -62,8 +62,8 @@ var tap = {
   },
   messageHandler: function(sock) {
     var self = this;
-    sock.on("setNote", function (payload) {self.setNote(self, payload)});
     sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
+    sock.on("setChord", function(payload) {self.setChord(self, payload)});
   },
   touchStarted: function() {
     this.noteOff();
@@ -78,8 +78,13 @@ var tap = {
   noteOff: function() {
     this.env.triggerRelease();
   },
-  setNote: function(self, payload) {
-    self.osc.freq(midiToFreq(payload.note));
+  setChord: function(self, payload) {
+    var chord = payload.chord;
+    var note = chord[state.clientId % chord.length];
+    self.setNote(note);
+  },
+  setNote: function(note) {
+    this.osc.freq(midiToFreq(note));
   },
   setADSR: function(self, payload) {
     self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
@@ -141,10 +146,6 @@ var drone = {
   },
   messageHandler: function(sock) {
     var self = this;
-    sock.on("setNote", function (payload) {self.setNote(self, payload)});
-  },
-  setNote: function(self, payload) {
-    self.osc.freq(midiToFreq(payload.note));
   },
   mute: function() {
     this.osc.amp(0);

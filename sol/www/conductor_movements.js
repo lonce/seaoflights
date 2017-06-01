@@ -1,5 +1,11 @@
 var tapping = {
   name: "1-) Tapping movement",
+  chords: [
+    [48, 55, 60],
+    [55, 62, 67],
+    [53, 60, 65],
+    [57, 64, 69]
+    ],
   init: function() {
     var table = $('#sectionsTable');
     var sliders = $("<tr class='adsr-sliders tap-mv'><td>A</br>D</br>S</br>R</td><td><div class='a-slider' data-scope='section' data-target='l' data-param='a'></div><div class='d-slider' data-scope='section' data-target='l' data-param='d'></div><div class='s-slider' data-scope='section' data-target='l' data-param='s'></div><div class='r-slider' data-scope='section' data-target='l' data-param='r'></div></td><td><div class='a-slider' data-scope='section' data-target='c' data-param='a'></div><div class='d-slider' data-scope='section' data-target='c' data-param='d'></div><div class='s-slider' data-scope='section' data-target='c' data-param='s'></div><div class='r-slider' data-scope='section' data-target='c' data-param='r'></div></td><td><div class='a-slider' data-scope='section' data-target='r' data-param='a'></div><div class='d-slider' data-scope='section' data-target='r' data-param='d'></div><div class='s-slider' data-scope='section' data-target='r' data-param='s'></div><div class='r-slider' data-scope='section' data-target='r' data-param='r'></div></td></tr>");
@@ -47,6 +53,14 @@ var tapping = {
       console.log("Update ", scope, " ", target, " attack:", atk, " decay:", dec, " sus:", sus, " release:", rel);
       socket.emit('setADSR', {scope: scope, target: target, a: atk, d: dec, s: sus, r: rel});
     }
+    this.chords.forEach(function (chord, idx) {
+      var chordBtn = $("<button class='tap-mv chord-btn'>Chord ", idx, "</button>");
+      chordBtn.on('click', function() {
+        console.log("Sending new chord");
+        socket.emit('chordChange', {chord: chord});
+      });
+      $('.generalControls').append(chordBtn);
+    });
   },
   cleanup: function() {
      $('.tap-mv').remove();
@@ -58,6 +72,7 @@ var drone = {
   init: function() {
   },
   cleanup: function() {
+    $('.drone-mv').remove();
   }
 }
 

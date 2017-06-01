@@ -196,6 +196,13 @@ io.sockets.on("connection", function (socket) {
     console.log("Setting glitch to ", data.glitch);
     socket.broadcast.emit("setGlitch", data);
   });
+  socket.on("chordChange", function(data) {
+    sectionParamMap['l'].chord = data.chord;
+    sectionParamMap['c'].chord = data.chord;
+    sectionParamMap['r'].chord = data.chord;
+    console.log("Setting chord to ", data.chord);
+    socket.broadcast.emit("setChord", data);
+  });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
     dropClient(socket.myID);
