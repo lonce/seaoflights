@@ -70,7 +70,6 @@ public class Synth {
     }
 
     fun void setOscGain(int osc, int gain) {
-        <<< osc, gain >>>;
         float _gain;
         Math.pow(gain / 127.0, 2) => _gain;
         if (osc == 0)

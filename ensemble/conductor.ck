@@ -192,21 +192,21 @@ fun void handleMIDI() {
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
                         _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(30);
+                        _tracks[id].setSynthRelease(24);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 1);
                         _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(30);
+                        _tracks[id].setSynthRelease(24);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 2);
                         _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(30);
+                        _tracks[id].setSynthRelease(24);
                     }
 
                     _tracks @=> tracks;
