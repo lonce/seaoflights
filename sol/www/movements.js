@@ -5,17 +5,6 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
-/*
-var samples = [];
-
-function preload() {
-  sampleFiles.forEach(function(path) {
-    var sound = loadSound(sampleFiles[path]);
-    samples.push(sound);
-  });
-}
-*/
-
 var tap = {
   initialADSR: {
     a: 0.01,
@@ -39,9 +28,6 @@ var tap = {
     this.meter = new p5.Amplitude();
     this.osc = new p5.SawOsc(440);
     this.env = new p5.Env();
-    this.filter = new p5.LowPass();
-    this.osc.disconnect();
-    this.osc.connect(this.filter);
     this.env.setADSR(
         this.initialADSR.a,
         this.initialADSR.d,
@@ -57,7 +43,6 @@ var tap = {
     this.osc.stop();
     this.osc.dispose();
     this.env.dispose();
-    this.filter.dispose();
     this.meter.dispose();
   },
   draw: function() {
@@ -81,11 +66,8 @@ var tap = {
     sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
   },
   touchStarted: function() {
-    this.setFilter(mouseX/width, mouseY/height);
+    this.noteOff();
     this.noteOn();
-  },
-  touchMoved: function() {
-    this.setFilter(mouseX/width, mouseY/height);
   },
   touchEnded: function() {
     this.noteOff();
@@ -110,21 +92,13 @@ var tap = {
   },
   setGain: function(gain) {
     this.env.mult(gain);
-  },
-  setFilter: function(x, y) {
-    var freq = x * this.filterParams.max + this.filterParams.min;
-    var res = (1-y) * this.filterParams.qMax + this.filterParams.qMin;
-    this.filter.set(freq, res);
-  },
-  deviceShaken: function() {
-    this.env.play();
   }
 }
 
 var drone = {
   backgroundColors: {
     l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B: 80},
+    c: {H: 40, S: 50, B:80},
     r: {H: 70, S: 50, B:80}
   },
   filterParams: {
@@ -169,12 +143,6 @@ var drone = {
     var self = this;
     sock.on("setNote", function (payload) {self.setNote(self, payload)});
   },
-  deviceMoved: function() {
-    console.log("device moved");
-    var x = (rotationX + 180)/360;
-    var y = (rotationY + 180)/360;
-    setFilter(x, y);
-  },
   setNote: function(self, payload) {
     self.osc.freq(midiToFreq(payload.note));
   },
@@ -186,6 +154,9 @@ var drone = {
   },
   setGain: function(gain) {
     this.osc.amp(gain);
+  },
+  touchStarted: function() {
+    this.setFilter(mouseX/width, mouseY/height);
   },
   setFilter: function(x, y) {
     var freq = x * this.filterParams.max + this.filterParams.min;
@@ -308,8 +279,7 @@ var shakey = {
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
-    //this.sound = samples[state.clientId % samples.length];
-    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length]);
+    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {console.log("sample loaded")});
     this.sound.playMode('restart');
     setShakeThreshold(this.shakeThreshold);
   },

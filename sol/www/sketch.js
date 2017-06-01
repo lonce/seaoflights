@@ -104,23 +104,25 @@ function draw() {
     state.movement.draw();
   }
 }
-
 function touchStarted() {
   if(state.movement.touchStarted) {
     state.movement.touchStarted();
   }
+  return false;
 }
 
 function touchEnded() {
   if(state.movement.touchEnded) {
     state.movement.touchEnded();
   }
+  return false;
 }
 
 function deviceShaken() {
   if(state.movement.deviceShaken) {
     state.movement.deviceShaken();
   }
+  return false;
 }
 
 function deviceMoved() {
