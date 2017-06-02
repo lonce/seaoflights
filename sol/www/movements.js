@@ -260,19 +260,19 @@ var drone = {
   },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: (freq) => {freq}, osc: null},
-                  {type: p5.TriOsc, offset: (freq) => {freq + freq/2}, osc: null},
-                  {type: p5.TriOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
                 ],
              c: [
-                  {type: p5.SawOsc, offset: (freq) => {freq}, osc: null},
-                  {type: p5.SawOsc, offset: (freq) => {freq + freq/2}, osc: null},
-                  {type: p5.SawOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
                 ],
              r: [
-                  {type: p5.SinOsc, offset: (freq) => {freq}, osc: null},
-                  {type: p5.SinOsc, offset: (freq) => {freq + freq/2}, osc: null},
-                  {type: p5.SinOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
                 ],
   },
   modFreq: 60,
@@ -379,13 +379,13 @@ var glitch = {
   },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: (freq) => {freq}, osc: null}
+                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null}
              ],
              c: [
-                  {type: p5.SawOsc, offset: (freq) => {freq}, osc: null}
+                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null}
                 ],
              r: [
-                  {type: p5.SinOsc, offset: (freq) => {freq}, osc: null}
+                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null}
                 ],
   },
   baseFreq: 440,
