@@ -207,11 +207,17 @@ var tap = {
     sock.on("setChord", function(payload) {self.setChord(self, payload)});
   },
   touchStarted: function() {
-    this.noteOff();
-    this.noteOn();
+    if (state.seatingSection) {
+      this.noteOff();
+      this.noteOn();
+      return false;
+    }
   },
   touchEnded: function() {
-    this.noteOff();
+    if (state.seatingSection) {
+      this.noteOff();
+      return false;
+    }
   },
   noteOn: function() {
     this.env.triggerAttack();
