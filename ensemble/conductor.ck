@@ -9,35 +9,35 @@ Track tracks[12];
 int leftSection[0];
 leftSection << 0;
 leftSection << 1;
-leftSection << 10;
-leftSection << 11;
+leftSection << 6;
+leftSection << 7;
 // C
 int centerSection[0];
 centerSection << 2;
-centerSection << 7;
+centerSection << 3;
 centerSection << 8;
 centerSection << 9;
 // R
 int rightSection[0];
-rightSection << 3;
 rightSection << 4;
 rightSection << 5;
-rightSection << 6;
+rightSection << 10;
+rightSection << 11;
 
 // Drone
 int droneSection[0];
+droneSection << 0;
 droneSection << 5;
+droneSection << 6;
 droneSection << 11;
 
 int upperSection[0];
-upperSection << 6;
 upperSection << 7;
 upperSection << 8;
 upperSection << 9;
 upperSection << 10;
 
 int lowerSection[0];
-lowerSection << 0;
 lowerSection << 1;
 lowerSection << 2;
 lowerSection << 3;
@@ -61,18 +61,31 @@ fun void initNetwork() {
     6449 => int port;
 
     // xmitters - inner ring L -> R, outer ring R -> L
-    HOSTS << "kimchi.local";       // L1: 0
-    HOSTS << "localhost";       // L2: 1
-    HOSTS << "quinoa.local";       // C1: 2
-    HOSTS << "tiramisu.local";       // R1: 3
-    HOSTS << "localhost";       // R2: 4
-    HOSTS << "localhost";       // R3: 5
-    HOSTS << "localhost";       // R4: 6
-    HOSTS << "localhost";       // C2: 7
-    HOSTS << "localhost";       // C3: 8
-    HOSTS << "localhost";       // C4: 9
-    HOSTS << "localhost";       // L3: 10
-    HOSTS << "localhost";       // L4: 11
+    HOSTS << "localhost";           // L1: 0
+    HOSTS << "localhost";           // L2: 1
+    HOSTS << "localhost";           // C1: 2
+    HOSTS << "localhost";           // C2: 3
+    HOSTS << "localhost";           // R1: 4
+    HOSTS << "localhost";           // R2: 5
+    HOSTS << "localhost";           // L3: 6
+    HOSTS << "localhost";           // L4: 7
+    HOSTS << "localhost";           // C3: 8
+    HOSTS << "localhost";           // C4: 9
+    HOSTS << "localhost";           // R3: 10
+    HOSTS << "localhost";           // R4: 11
+    // bing setup
+    /*HOSTS << "omelet.local";        // L1: 0
+    HOSTS << "lasagna.local";       // L2: 1
+    HOSTS << "meatloaf.local";      // C1: 2
+    HOSTS << "quinoa.local";        // C2: 3
+    HOSTS << "chowder.local";       // R1: 4
+    HOSTS << "pho.local";           // R2: 5
+    HOSTS << "kimchi.local";        // L3: 6
+    HOSTS << "nachos.local";        // L4: 7
+    HOSTS << "spam.local";          // C3: 8
+    HOSTS << "hamburger.local";     // C4: 9
+    HOSTS << "tiramisu.local";      // R3: 10
+    HOSTS << "udon.local";          // R4: 11*/
 
     HOSTS.size() => int nHosts;
 
@@ -152,22 +165,26 @@ fun void handleMIDI() {
                     for (0 => int i; i < leftSection.cap(); i++) {
                         leftSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(24);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(24);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(12);
-                        _tracks[id].setSynthRelease(24);
+                    }
+
+                    <<< "Setup audio" >>>;
+                    for (0 => int i; i < _tracks.cap(); i++) {
+                        _tracks[i].setSynthAttack(6);
+                        _tracks[i].setSynthRelease(24);
+                        _tracks[i].setSynthGain(0, 120);
+                        _tracks[i].setSynthGain(1, 0);
+                        _tracks[i].setSynthGain(2, 30);
+                        _tracks[i].setSynthGain(3, 0);
                     }
 
                     _tracks @=> tracks;
@@ -191,22 +208,26 @@ fun void handleMIDI() {
                         leftSection[i] => int id;
                         <<< id >>>;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[id].setSynthAttack(6);
-                        _tracks[id].setSynthRelease(6);
                     }
                     <<< "Initialing center section" >>>;
                     for (0 => int i; i < centerSection.cap(); i++) {
                         centerSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 1);
-                        _tracks[id].setSynthAttack(6);
-                        _tracks[id].setSynthRelease(6);
                     }
                     <<< "Initialing right section" >>>;
                     for (0 => int i; i < rightSection.cap(); i++) {
                         rightSection[i] => int id;
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, beatNumber - 2);
-                        _tracks[id].setSynthAttack(6);
-                        _tracks[id].setSynthRelease(6);
+                    }
+
+                    <<< "Setup audio" >>>;
+                    for (0 => int i; i < _tracks.cap(); i++) {
+                        _tracks[i].setSynthAttack(0);
+                        _tracks[i].setSynthRelease(12);
+                        _tracks[i].setSynthGain(0, 0);
+                        _tracks[i].setSynthGain(1, 120);
+                        _tracks[i].setSynthGain(2, 10);
+                        _tracks[i].setSynthGain(3, 60);
                     }
 
                     _tracks @=> tracks;
@@ -232,6 +253,10 @@ fun void handleMIDI() {
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
                         _tracks[id].setSynthAttack(64);
                         _tracks[id].setSynthRelease(127);
+                        _tracks[i].setSynthGain(0, 100);
+                        _tracks[i].setSynthGain(1, 10);
+                        _tracks[i].setSynthGain(2, 30);
+                        _tracks[i].setSynthGain(3, 20);
                     }
                     <<< "Initialing upper section" >>>;
                     for (0 => int i; i < upperSection.cap(); i++) {
@@ -240,6 +265,10 @@ fun void handleMIDI() {
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
                         _tracks[id].setSynthAttack(6);
                         _tracks[id].setSynthRelease(12);
+                        _tracks[i].setSynthGain(0, 0);
+                        _tracks[i].setSynthGain(1, 60);
+                        _tracks[i].setSynthGain(2, 0);
+                        _tracks[i].setSynthGain(3, 0);
                     }
                     <<< "Initialing lower section" >>>;
                     for (0 => int i; i < lowerSection.cap(); i++) {
@@ -248,6 +277,10 @@ fun void handleMIDI() {
                         _tracks[id].init(id, xmitters[id], bpm, beatNumber, beatMeasure, 0);
                         _tracks[id].setSynthAttack(6);
                         _tracks[id].setSynthRelease(12);
+                        _tracks[i].setSynthGain(0, 0);
+                        _tracks[i].setSynthGain(1, 60);
+                        _tracks[i].setSynthGain(2, 0);
+                        _tracks[i].setSynthGain(3, 0);
                     }
 
                     _tracks @=> tracks;
@@ -273,6 +306,10 @@ fun void handleMIDI() {
                         _tracks[i].unmute();
                         _tracks[i].setSynthAttack(60);
                         _tracks[i].setSynthRelease(60);
+                        _tracks[i].setSynthGain(0, 120);
+                        _tracks[i].setSynthGain(1, 10);
+                        _tracks[i].setSynthGain(2, 0);
+                        _tracks[i].setSynthGain(3, 90);
                         false => _tracks[i].isAwake;
                     }
 
@@ -460,10 +497,10 @@ fun void handleMIDI() {
 
             // SYNTH CC
             // set osc gain
-            if ((msg.data2 >= 52) && (msg.data2 <= 55)) {
+            /*if ((msg.data2 >= 52) && (msg.data2 <= 55)) {
                 for (int i; i < tracks.cap(); i++)
                     tracks[i].setSynthGain(msg.data2 - 52, msg.data3);
-            }
+            }*/
 
             /*if ((msg.data1 >= 176) && (msg.data1 <= 181)) {
                 // select track

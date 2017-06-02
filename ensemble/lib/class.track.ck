@@ -189,7 +189,7 @@ public class Track {
     }
 
     fun void _runSequence(Sequencer seq) {
-        /*metro.measureTick => now;*/
+        metro.sixteenthNoteTick => now;
         // Movement 2: waves
         false => seqLoaded;
         seq @=> sequence;
