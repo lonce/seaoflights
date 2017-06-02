@@ -185,6 +185,7 @@ fun void handleMIDI() {
                         _tracks[i].setSynthGain(1, 0);
                         _tracks[i].setSynthGain(2, 30);
                         _tracks[i].setSynthGain(3, 0);
+                        _tracks[i].play();
                     }
 
                     _tracks @=> tracks;
@@ -281,6 +282,7 @@ fun void handleMIDI() {
                         _tracks[i].setSynthGain(1, 60);
                         _tracks[i].setSynthGain(2, 0);
                         _tracks[i].setSynthGain(3, 0);
+                        _tracks[i].play();
                     }
 
                     _tracks @=> tracks;
@@ -311,6 +313,7 @@ fun void handleMIDI() {
                         _tracks[i].setSynthGain(2, 0);
                         _tracks[i].setSynthGain(3, 90);
                         false => _tracks[i].isAwake;
+                        _tracks[i].play();
                     }
 
                     _tracks @=> tracks;

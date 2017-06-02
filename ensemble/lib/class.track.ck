@@ -132,8 +132,6 @@ public class Track {
         metro.getSixteenthBeatDur() => baseNoteLen;
 
         initPlayer(metro.getSixteenthBeatDur());
-
-        play();
     }
 
     fun void reinit() {
