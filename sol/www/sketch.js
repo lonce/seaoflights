@@ -67,27 +67,27 @@ function getSeatingCb(cb) {
     {
       text: "Left",
       click: function() {
-        setLocation("l");
         $(this).dialog("close");
         $(this).remove();
+        setLocation("l");
         cb();
       }
     },
     {
       text: "Center",
       click: function() {
-        setLocation("c");
         $(this).dialog("close");
         $(this).remove();
+        setLocation("c");
         cb();
       }
     },
     {
       text: "Right",
       click: function() {
-        setLocation("r");
         $(this).dialog("close");
         $(this).remove();
+        setLocation("r");
         cb();
       }
     },

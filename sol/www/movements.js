@@ -52,11 +52,7 @@ var nosection = {
              },
     draw: function() {
             background(0);
-            if (this.meter) {
-              var level = this.meter.getLevel();
-            } else {
-              var level = 0;
-            }
+            var level = this.meter.getLevel();
             var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
             var baseColor = this.backgroundColor;
             var bgColor = color(
