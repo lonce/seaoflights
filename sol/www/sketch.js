@@ -160,6 +160,10 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
 }
 
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+}
+
 function draw() {
   if (state.movement && state.movement.draw) {
     state.movement.draw();
