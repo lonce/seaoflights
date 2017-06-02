@@ -7,7 +7,7 @@ float col = 0.0;
 int id = -1;
 
 void setup() {
-  size(800, 600);
+  size(1600, 900);
   frameRate(25);
   colorMode(RGB, 100);
 

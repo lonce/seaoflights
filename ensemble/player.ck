@@ -166,3 +166,23 @@ fun void handleSynthGlitch() {
         }
     }
 }
+
+/*fun void handleDroneStart() {
+    // create an address in the receiver, store in new variable
+    recv.event("/player/drone/start") @=> OscEvent oe;
+
+    // infinite event loop
+    while (true) {
+        oe => now;
+
+
+        if (ready) {
+            // wait for event to arrive
+
+            // grab the next message from the queue.
+            while (oe.nextMsg() != 0) {
+                synth.startDron`();
+            }
+        }
+    }
+}*/

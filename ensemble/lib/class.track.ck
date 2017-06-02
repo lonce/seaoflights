@@ -117,6 +117,8 @@ public class Track {
     [[36, 2], [0, 1], [0, 1], [0, 1], [34, 2], [0, 1], [0, 1], [0, 1], [32, 1], [0, 1], [39, 1], [0, 1], [38, 2], [0, 1], [0, 1], [0, 1]] @=> _measure;
     bassSeq[0].addMeasure(_measure);
 
+    /*0 => int currDroneNote;
+    [36, 38, 39, 41, 44, 34, 36, 34, 32, 31, 32, 36] @=> float droneNotes[];*/
 
     fun void init(int _id, OscSend _xmit, float bpm, int beatNumber, int beatMeasure, int _offset) {
         _id => id;
@@ -389,4 +391,9 @@ public class Track {
         xmit.startMsg("/player/synth/glitch", "i");
         level => xmit.addInt;
     }
+
+    /*fun void nextDrone() {
+        (currDroneNote + 1) % droneNotes.cap() => currDroneNote;
+
+    }*/
 }

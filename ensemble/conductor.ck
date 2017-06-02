@@ -180,11 +180,12 @@ fun void handleMIDI() {
                     <<< "Setup audio" >>>;
                     for (0 => int i; i < _tracks.cap(); i++) {
                         _tracks[i].setSynthAttack(6);
-                        _tracks[i].setSynthRelease(24);
+                        _tracks[i].setSynthRelease(36);
                         _tracks[i].setSynthGain(0, 120);
                         _tracks[i].setSynthGain(1, 0);
-                        _tracks[i].setSynthGain(2, 30);
+                        _tracks[i].setSynthGain(2, 0);
                         _tracks[i].setSynthGain(3, 0);
+                        _tracks[i].setSynthGain(4, 60);
                         _tracks[i].play();
                     }
 
@@ -306,12 +307,12 @@ fun void handleMIDI() {
                         _tracks[i].init(i, xmitters[i], bpm, beatNumber, beatMeasure, 0);
                         _tracks[i].loadSequence(5, 0);
                         _tracks[i].unmute();
-                        _tracks[i].setSynthAttack(60);
-                        _tracks[i].setSynthRelease(60);
+                        _tracks[i].setSynthAttack(45);
+                        _tracks[i].setSynthRelease(120);
                         _tracks[i].setSynthGain(0, 120);
-                        _tracks[i].setSynthGain(1, 10);
+                        _tracks[i].setSynthGain(1, 50);
                         _tracks[i].setSynthGain(2, 0);
-                        _tracks[i].setSynthGain(3, 90);
+                        _tracks[i].setSynthGain(3, 60);
                         false => _tracks[i].isAwake;
                         _tracks[i].play();
                     }

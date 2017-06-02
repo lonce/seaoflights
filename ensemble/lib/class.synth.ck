@@ -14,6 +14,7 @@ public class Synth {
     SqrOsc sqr => env;
     SawOsc saw => env;
     Noise noise => BiQuad filter => env;
+    TriOsc tri => env;
 
     dur baseNoteDur;
     0::ms => dur noteDur;
@@ -22,6 +23,8 @@ public class Synth {
     float rlsTime, atkTime;
 
     0 => float glitch;
+
+    /*36 => float currDroneNote;*/
 
     fun void init(dur _baseNoteDur) {
         _baseNoteDur => baseNoteDur;
@@ -36,10 +39,11 @@ public class Synth {
         // set equal zeros
         1 => filter.eqzs;
 
-        0.5 => sin.gain;
+        0 => sin.gain;
         0 => sqr.gain;
-        0.1 => saw.gain;
+        0 => saw.gain;
         0 => noise.gain;
+        0 => tri.gain;
 
         env.set(0.001, 0, 1, 0.001);
 
@@ -55,6 +59,7 @@ public class Synth {
         freq => sin.freq;
         freq => sqr.freq;
         freq => saw.freq;
+        freq => tri.freq;
         freq * 2 => filter.pfreq;
     }
 
@@ -80,6 +85,8 @@ public class Synth {
             _gain => saw.gain;
         if (osc == 3)
             _gain => noise.gain;
+        if (osc == 4)
+            _gain => tri.gain;
     }
 
     fun void setAttack(int atk) {
@@ -113,6 +120,24 @@ public class Synth {
         gfxFadeOut();
         env.keyOff();
     }
+
+    /*fun void setDroneNote(float note) {
+        spork ~ _setDroneNote(note);
+    }
+
+    fun void _setDroneNote(float note) {
+        note => currDroneNote;
+    }
+
+    fun void startDrone() {
+        gfxFadeIn();
+        env.keyOn();
+    }
+
+    fun void stopDrone() {
+        gfxFadeOut();
+        env.keyOff();
+    }*/
 
     fun void gfxFadeIn() {
         "/screen/fadeIn" => string path;
