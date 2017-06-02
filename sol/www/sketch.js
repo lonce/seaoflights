@@ -12,7 +12,7 @@ var socket = io();
 
 var state = {
   clientId: -1,
-  seatingSection: null,
+  seatingSection: false,
   movementId: 0,
   movement: null
 };
@@ -43,6 +43,7 @@ function initClient(data) {
 }
 
 function getSeating(data) {
+  console.log("tryna get seateing");
   state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
   socket.emit("setLocation", {seatingSection: state.seatingSection});
 }
