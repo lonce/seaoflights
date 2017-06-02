@@ -40,6 +40,20 @@ function audienceInit() {
 function initClient(data) {
   state.clientId = data.clientId;
   console.log("Server initialized this client with the id ", state.clientId);
+  var dat = data.ackData
+  console.log("Other data: ", dat);
+  if(dat.movement) {
+    console.log("Server said my movement should be ", dat.movement);
+    setMovement(dat);
+  }
+  if(dat.gain) {
+    console.log("Server said my gain should be ", dat.gain);
+    setGain(data);
+  }
+  if(dat.mute) {
+    console.log("Server said my mute should be ", dat.mute);
+    muteClient();
+  }
 }
 
 function getSeating(data) {
@@ -54,19 +68,6 @@ function seatingCheck(data) {
     sendMessage("setLocation", {seatingSection: state.seatingSection});
   } else {
     console.log("Server has correct seating information for me, moving on");
-    console.log("Other data: ", data);
-    if(data.movement) {
-      console.log("Server said my movement should be ", data.movement);
-      setMovement(data);
-    }
-    if(data.gain) {
-      console.log("Server said my gain should be ", data.gain);
-      setGain(data);
-    }
-    if(data.mute) {
-      console.log("Server said my mute should be ", data.mute);
-      muteClient();
-    }
   }
 }
 
