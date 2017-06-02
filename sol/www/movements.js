@@ -133,6 +133,7 @@ var tap = {
   },
   init: function(sock) {
     if (!state.seatingSection) {
+      console.log("Movement wants seating info");
       getSeating();
     }
     this.messageHandler(sock);

@@ -43,7 +43,7 @@ function initClient(data) {
 }
 
 function getSeating(data) {
-  console.log("tryna get seateing");
+  console.log("tryna get seating");
   state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
   socket.emit("setLocation", {seatingSection: state.seatingSection});
 }
@@ -90,6 +90,7 @@ function setGain(data) {
 
 function setMovement(data) {
   if (state.movement && state.movementId === data.movement) {
+    console.log("Reinitializing current movement ", state.movementId);
     state.movement.cleanup();
     state.movement.init(socket);
     return;
@@ -98,6 +99,7 @@ function setMovement(data) {
     state.movement.cleanup();
   };
   state.movement = null;
+  console.log("
   movements[data.movement].init(socket);
   console.log("Setting movement to: ", data.movement);
   state.movement = movements[data.movement];
