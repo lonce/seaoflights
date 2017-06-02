@@ -536,6 +536,7 @@ var shakey = {
     if(this.meter) {
       var level = this.meter.getLevel();
     } else {
+      console.log("No level");
       var level = 0;
     }
     var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
