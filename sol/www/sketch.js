@@ -169,21 +169,18 @@ function touchStarted() {
   if(state.movement && state.movement.touchStarted) {
     state.movement.touchStarted();
   }
-  return false;
 }
 
 function touchEnded() {
   if(state.movement && state.movement.touchEnded) {
     state.movement.touchEnded();
   }
-  return false;
 }
 
 function deviceShaken() {
   if(state.movement && state.movement.deviceShaken) {
     state.movement.deviceShaken();
   }
-  return false;
 }
 
 function deviceMoved() {
