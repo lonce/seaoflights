@@ -24,6 +24,7 @@ public class Track {
     false => int isGlitching;
 
     true => int isAwake;
+    false => int isWaving;
 
     0 => int offset;
 
@@ -180,37 +181,44 @@ public class Track {
         true => seqLoaded;
     }
 
-    fun void runSequence(int seqType, int seqID) {
+    fun void runWave(int seqType, int seqID) {
+        if (isWaving) {
+            <<< "Wave in progression, wait..." >>>;
+            return;
+        }
         if (seqType == 2) {
-            spork ~ _runSequence(wavesSeq[seqID]);
+            spork ~ _runWave(wavesSeq[seqID]);
         }
     }
 
-    fun void _runSequence(Sequencer seq) {
-        metro.sixteenthNoteTick => now;
+    fun void _runWave(Sequencer seq) {
         // Movement 2: waves
-        false => seqLoaded;
-        seq @=> sequence;
-        sequence.setOffset(offset);
-        true => seqLoaded;
+        true => isWaving;
+        metro.start();
+        seq.setOffset(offset);
+
+        seq.SEQ_LEN => int notesLeft;
 
         <<< "starting run..." >>>;
         while (true) {
-            if (seqLoaded) {
-                if (sequence.hasNote()) {
-                    triggerPlayer(sequence.getNote(), sequence.getLength());
-                }
+            metro.eighthNoteTick => now;
 
-                sequence.tick() => int playhead;
-
-                if (playhead == 0) {
-                    <<< "end run!" >>>;
-                    return;
-                }
+            if (seq.hasNote()) {
+                triggerPlayer(seq.getNote(), seq.getLength());
             }
 
-            metro.eighthNoteTick => now;
+            seq.tick() => int playhead;
+            notesLeft--;
+
+            <<< id, notesLeft >>>;
+
+            if (notesLeft == 0) {
+                break;
+            }
         }
+        <<< "end run!" >>>;
+        metro.stop();
+        false => isWaving;
     }
 
     fun void play() {

@@ -226,7 +226,7 @@ fun void handleMIDI() {
                         _tracks[i].setSynthAttack(0);
                         _tracks[i].setSynthRelease(12);
                         _tracks[i].setSynthGain(0, 0);
-                        _tracks[i].setSynthGain(1, 120);
+                        _tracks[i].setSynthGain(1, 80);
                         _tracks[i].setSynthGain(2, 10);
                         _tracks[i].setSynthGain(3, 60);
                     }
@@ -371,7 +371,7 @@ fun void handleMIDI() {
                 if (msg.data2 == 53) {
                     if ((msg.data1 >= 144) && (msg.data1 <= 147)) {
                         for (int i; i < tracks.cap(); i++) {
-                            tracks[i].runSequence(2, msg.data1 - 144);
+                            tracks[i].runWave(2, msg.data1 - 144);
                         }
                     }
                 }
