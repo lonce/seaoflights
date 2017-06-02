@@ -481,12 +481,12 @@ fun void handleMIDI() {
             // MOVEMENT 4 CC
             if (movement == 4) {
                 if (msg.data2 == 53) {
-                    if ((msg.data1 >= 144) && (msg.data1 <= 150)) {
-                        true => tracks[5 + msg.data1 - 144].isAwake;
+                    if ((msg.data1 >= 144) && (msg.data1 <= 159)) {
+                        true => tracks[6 + msg.data1 - 144].isAwake;
                     }
                 }
                 if (msg.data2 == 54) {
-                    if ((msg.data1 >= 144) && (msg.data1 <= 148)) {
+                    if ((msg.data1 >= 144) && (msg.data1 <= 149)) {
                         true => tracks[msg.data1 - 144].isAwake;
                     }
                 }
