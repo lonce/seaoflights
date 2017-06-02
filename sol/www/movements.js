@@ -132,6 +132,9 @@ var tap = {
                 ],
   },
   init: function(sock) {
+    if (!state.seatingSection) {
+      getSeating();
+    }
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.env = new p5.Env();
@@ -257,6 +260,9 @@ var drone = {
   ampFreq: 1,
   ampDepth: 1,
   init: function(sock) {
+    if (!state.seatingSection) {
+      getSeating();
+    }
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.modOsc = new p5.SinOsc();
@@ -351,6 +357,9 @@ var glitch = {
   glitch: 0,
   glitchOffset: 100,
   init: function(sock) {
+    if (!state.seatingSection) {
+      getSeating();
+    }
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.reverb = new p5.Reverb();
@@ -446,6 +455,9 @@ var shakey = {
     r: {H: 70, S: 50, B:80}
   },
   init: function(sock) {
+    if (!state.seatingSection) {
+      getSeating();
+    }
     var self = this;
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
