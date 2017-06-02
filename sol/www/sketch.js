@@ -20,7 +20,7 @@ var state = {
 
 function globalMessageHandler(sock) {
   sock.on("init", initClient);
-  sock.on("getSeating", getSeating);
+  sock.on("getSeating", getSeatingSock);
   sock.on("seatingAck", seatingCheck);
   sock.on("mute", muteClient);
   sock.on("unmute", unmuteClient);
@@ -56,10 +56,50 @@ function initClient(data) {
   }
 }
 
-function getSeating(data) {
-  console.log("tryna get seating");
-  state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
-  socket.emit("setLocation", {seatingSection: state.seatingSection});
+function getSeatingSock(data) {
+  getSeatingCb();
+};
+
+function getSeatingCb(cb) {
+  $('body').append($("<div id='locationPrompt'></div>"));
+  $('#locationPrompt').dialog({
+    dialogClass: "no-close",
+    buttons: [
+    {
+      text: "Left",
+      click: function() {
+        setLocation("l");
+        $(this).dialog("close");
+        $(this).remove();
+        cb();
+      }
+    },
+    {
+      text: "Center",
+      click: function() {
+        setLocation("c");
+        $(this).dialog("close");
+        $(this).remove();
+        cb();
+      }
+    },
+    {
+      text: "Right",
+      click: function() {
+        setLocation("r");
+        $(this).dialog("close");
+        $(this).remove();
+        cb();
+      }
+    },
+    ]
+  });
+}
+
+function setLocation(loc) {
+  console.log("setting location to ", loc);
+  state.seatingSection = loc;
+  socket.emit("setLocation", {seatingSection: loc});
 }
 
 function seatingCheck(data) {
