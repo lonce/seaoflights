@@ -61,9 +61,8 @@ function getSeatingSock(data) {
 };
 
 function getSeatingCb(cb) {
-  $('body').append($("<div id='locationPrompt'></div>"));
+  $('body').append($("<div id='locationPrompt'>Please tap your section as indicated by the conductors</div>"));
   $('#locationPrompt').dialog({
-    dialogClass: "no-close",
     buttons: [
     {
       text: "Left",
@@ -92,7 +91,12 @@ function getSeatingCb(cb) {
         cb();
       }
     },
-    ]
+    ],
+    draggable: false,
+    closeOnEscape: false,
+    modal: true,
+    resizable: false,
+    dialogClass: "no-close"
   });
 }
 
