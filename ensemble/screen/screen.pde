@@ -7,9 +7,10 @@ float col = 0.0;
 int id = -1;
 
 void setup() {
-  size(1600, 900);
   frameRate(25);
-  colorMode(RGB, 100);
+  colorMode(RGB, 256, 256, 256, 100);
+  // fullscreen(1);
+  size(1600, 900);
 
   /* start oscP5, listening for incoming messages at port 12000 */
   oscP5 = new OscP5(this, 12000);
@@ -46,9 +47,10 @@ public void fadeOut(float dur) {
 
 void draw() {
   background(0);
-
-  fill(col);
-  rect(0, 0, 800, 600);
+  // color c = color(255, 204, 0);
+  noStroke();
+  fill(255, 204, 0, col);
+  rect(0, 0, 1600, 900);
 }
 
 /* incoming osc message are forwarded to the oscEvent method. */

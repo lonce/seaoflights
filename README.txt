@@ -5,8 +5,8 @@ Install
 
 Now your main directory will look like this:
   node_modules  [folder with the installed libraries]
-  www           [folder with files to be served.] 
-	               
+  www           [folder with files to be served.]
+
   nodeServer.js [the server code]
 
 
@@ -19,3 +19,5 @@ For example,
 	localhost:9000/index.html
 
 
+open `pwd`/screen/application.macosx/screen.app &
+processing-java --sketch=`pwd`/screen --present &
