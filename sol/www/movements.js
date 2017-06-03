@@ -54,6 +54,7 @@ var nosection = {
                     }
                   },
     touchEnded: function() {
+      console.log("nosec touch ended");
       return false;
     },
     setWhisperProb: function(self, payload) {
@@ -196,7 +197,7 @@ var tap = {
     }
   },
   touchEnded: function() {
-    console.log("touch ended");
+    console.log("tap touch ended");
     if (state.seatingSection) {
       this.noteOff();
       return false;
@@ -246,9 +247,6 @@ var tap = {
     if(this.env){
     this.env.mult(gain);
     }
-  },
-  touchEnded: function() {
-    return false;
   }
 }
 
