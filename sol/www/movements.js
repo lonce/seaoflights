@@ -11,6 +11,7 @@ var nosection = {
   shakeThreshold: 20,
   whisperProb: 5,
   whisperDenom: 250,
+  initialized: false,
   init: function(sock) {
     this.whisper = loadSound("assets/whispers/en.mp3");
     this.foreignWhispers = [
@@ -114,20 +115,21 @@ var tap = {
   oscBank: {
              l: [
              {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
-             {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-             {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             {type: p5.SinOsc, offset: function(freq) {return freq + 1}, osc: null},
+             {type: p5.SinOsc, offset: function(freq) {return freq - 1}, osc: null}
              ],
                c: [
                {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
-               {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-               {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+               {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+               {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
              ],
                r: [
-               {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
-               {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+               {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
+               {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
                {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
              ],
            },
+  initialized: false,
   init: function(sock) {
           if (!state.seatingSection) {
             var self = this;
@@ -139,6 +141,11 @@ var tap = {
             this.restOfInit(sock);
           }
         },
+  firstNotes: {
+    l: 48,
+    c: 52,
+    r: 55,
+  },
   restOfInit: function(sock) {
                 console.log("Initing rest");
                 this.messageHandler(sock);
@@ -153,27 +160,31 @@ var tap = {
                 this.reverb = new p5.Reverb();
                 this.reverb.amp(8);
                 var self = this;
+                var initialNote = this.firstNotes[state.seatingSection];
                 this.oscBank[state.seatingSection].forEach(function(osc) {
                   osc.osc = new osc.type();
                   osc.osc.amp(self.env);
-                  osc.osc.freq(osc.offset(440));
+                  osc.osc.freq(osc.offset(midiToFreq(initialNote)));
                   osc.osc.start();
                   osc.osc.disconnect();
                   self.reverb.process(osc.osc, 0.5, 0.8);
                 });
                 this.bg = clientConfig.visual.bg;
+                this.initialized = true;
               },
   cleanup: function() {
-             if(state.seatingSection) {
+             if(this.initialized) {
                this.oscBank[state.seatingSection].forEach(function(osc) {
                  osc.osc.stop();
                  if(osc.osc) osc.osc.dispose();
                });
                if(this.meter) this.meter.dispose();
                if(this.reverb) this.reverb.dispose();
+               this.initialized = false;
              }
            },
   draw: function() {
+    if(this.initialized) {
           var seatingSection = state.seatingSection || 'c';
           background(0);
           if (this.meter) {
@@ -192,34 +203,36 @@ var tap = {
           noStroke();
           fill(bgColor);
           rect(0, 0, width, height);
-        },
+    }
+    },
   messageHandler: function(sock) {
                     var self = this;
-                    sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
-                    sock.on("setChord", function(payload) {self.setChordS(self, payload)});
+                    if(this.initialized) {
+                      sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
+                      sock.on("setChord", function(payload) {self.setChordS(self, payload)});
+                    }
                   },
   touchStarted: function() {
                   console.log("touch started");
-                  if (state.seatingSection) {
+                  if (this.initialized) {
                     this.noteOff();
                     this.noteOn();
                     return false;
                   }
                 },
   touchEnded: function() {
-                console.log("tap touch ended");
-                if (state.seatingSection) {
+                if (this.initialized) {
                   this.noteOff();
                   return false;
                 }
               },
   noteOn: function() {
-            if(this.env) {
+            if(this.initialized) {
               this.env.triggerAttack();
             }
           },
   noteOff: function() {
-             if(this.env) {
+             if(this.initialized) {
                this.env.triggerRelease();
              }
            },
@@ -227,12 +240,14 @@ var tap = {
                self.setChord(payload);
              },
   setChord: function(payload) {
+    if(this.initialized) {
               var chord = payload.chord;
               var note = chord[state.clientId % chord.length];
               this.setNote(note);
+    }
             },
   setNote: function(note) {
-             if ( state.seatingSection) {
+             if (this.initialized) {
                this.oscBank[state.seatingSection].forEach(function(osc) {
                  var freq = osc.offset(midiToFreq(note));
                  console.log("Setting osc freq to ", freq);
@@ -241,15 +256,15 @@ var tap = {
              }
            },
   setADSR: function(self, payload) {
-             if(self.env) self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+             if(this.initialized && self.env) self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
            },
   mute: function() {
-          if(this.env){
+          if(this.initialized && this.env){
             this.env.mult(0);
           }
         },
   unmute: function() {
-            if(this.env){
+            if(this.initialized && this.env){
               this.env.mult(1);
             }
           },
