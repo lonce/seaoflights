@@ -43,24 +43,26 @@ var welcome = {
   },
   draw: function() {
     background(0);
-    var level = this.meter.getLevel();
-    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColor;
-    var bgColor = color(
-        baseColor.H,
-        baseColor.S,
-        baseColor.B,
-        bgAlpha);
+    if(this.initialized){
+        var level = this.meter.getLevel();
+        var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+        var baseColor = this.backgroundColor;
+        var bgColor = color(
+            baseColor.H,
+            baseColor.S,
+            baseColor.B,
+            bgAlpha);
 
-    noStroke();
-    fill(bgColor);
-    rect(0, 0, width, height);
-    if(this.whisper.isLoaded() && (random(1000) < this.whisperProb)) {
-      var thisWhisper = this.foreignWhispers[random(this.foreignWhispers.length)];
-      if (thisWhisper.isLoaded()) {
-        thisWhisper.play();
-      }
-    }
+            noStroke();
+            fill(bgColor);
+            rect(0, 0, width, height);
+            if(this.whisper.isLoaded() && (random(1000) < this.whisperProb)) {
+                var thisWhisper = this.foreignWhispers[random(this.foreignWhispers.length)];
+                if (thisWhisper.isLoaded()) {
+                    thisWhisper.play();
+                }
+            }
+        }
   },
   messageHandler: function(sock) {
     var self = this;
@@ -335,33 +337,24 @@ var drone = {
     c: {H: 40, S: 50, B:80},
     r: {H: 70, S: 50, B:80}
   },
-  filterParams: {
-    max: 5000,
-    min: 100,
-    qMax: 15,
-    qMin: 0.001
+  initialized: false,
+  baseNote: 0,
+  deviceMoved: function() {
+      console.log("moved");
+      if(this.initialized) {
+          //var normZ = abs((rotationZ - 180)/360.0);
+          //var normX = (rotationX/180.0)
+          //var rampedZ = pow(normZ, 2);
+          //var lpFreq = 350 + rampedZ*3000;
+          //console.log("LPF: ", lpFreq);
+        //console.log("initialized and moved. Z: ", rotationZ, " x: ", rotationX, " y: ", rotationY);
+        //this.lpf.freq(lpFreq);
+        var modLevel = (rotationX/180.0)*100;
+        console.log(modLevel);
+        this.tri2.freq(midiToFreq(this.baseNote) + modLevel);
+        //this.pulse2.freq(midiToFreq(this.baseNote + 7) + (rotationY/180.0)*10);
+      }
   },
-  oscBank: {
-    l: [
-    {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
-    {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-    {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-    ],
-    c: [
-    {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
-    {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-    {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-    ],
-    r: [
-    {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
-    {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-    {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-    ],
-  },
-  modFreq: 60,
-  modDepth: 100,
-  ampFreq: 1,
-  ampDepth: 1,
   init: function(sock) {
     var self = this;
     if (!state.seatingSection) {
@@ -374,35 +367,70 @@ var drone = {
   },
   restOfInit: function(sock){
     console.log("Initing rest");
-    this.messageHandler(sock);
     this.meter = new p5.Amplitude();
-    this.modOsc = new p5.SinOsc();
-    this.modOsc.start();
-    this.modOsc.disconnect();
-    this.modOsc.amp(this.modDepth);
-    this.modOsc.freq(this.modFreq);
-    this.reverb = new p5.Reverb();
-    this.reverb.amp(8);
+
+
+    this.pulse1 = new p5.Pulse();
+    this.pulse2 = new p5.Pulse();
+    this.tri1 = new p5.TriOsc();
+    this.tri2 = new p5.TriOsc();
+    this.noise = new p5.Noise();
+
+    this.pulseGn1 = new p5.Gain(0);
+    this.pulseGn2 = new p5.Gain(0);
+    this.triGn1 = new p5.Gain(1);
+    this.triGn2 = new p5.Gain(1);
+    this.noiseGn = new p5.Gain(0);
+
+    this.lpf = new p5.LowPass();
+    this.rev = new p5.Reverb();
+    this.env = new p5.Env();
+
+    this.oscillators = [
+        this.pulse1,
+        this.pulse2,
+        this.tri1,
+        this.tri2,
+        this.noise
+    ];
+
+    this.gains = [
+        this.pulseGn1,
+        this.pulseGn2,
+        this.triGn1,
+        this.triGn2,
+        this.noiseGn
+    ];
+
     var self = this;
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc = new osc.type();
-      osc.osc.amp(1);
-      osc.osc.freq(osc.offset(440));
-      osc.osc.start();
-      osc.osc.disconnect();
-      osc.osc.freq(self.modOsc);
-      self.reverb.process(osc.osc, 0.5, 0.8);
+
+    this.oscillators.forEach(function(osc, idx) {
+        osc.disconnect();
+        osc.amp(self.env);
+        self.gains[idx].setInput(osc);
+        self.gains[idx].connect(self.lpf);
+        osc.start();
     });
+    this.env.setADSR(1, 1, 1, 0);
+    this.env.triggerAttack();
+
+    this.lpf.disconnect();
+    this.rev.process(this.lpf, 2, 2);
     this.bg = clientConfig.visual.bg;
+    this.messageHandler(sock);
+    this.initialized = true;
   },
   cleanup: function() {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.stop();
-        if (osc.osc) osc.osc.dispose();
+    if (this.initialized) {
+      this.oscillators.forEach(function(osc) {
+        osc.stop();
+        osc.dispose();
       });
-      this.modOsc.stop();
-      if (this.modOsc) this.modOsc.dispose();
+      this.gains.forEach(function(gain) {
+          gain.dispose();
+      });
+      if (this.env) this.env.dispose();
+      if (this.lpf) this.lpf.dispose();
       if (this.reverb) this.reverb.dispose();
       if (this.meter) this.meter.dispose();
     }
@@ -429,37 +457,40 @@ var drone = {
   },
   messageHandler: function(sock) {
     var self = this;
+    sock.on("setChord", function(payload) {self.setChordS(self, payload)});
   },
   mute: function() {
-    if (state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(0);
-      });
+    if (this.initialized) {
+      this.env.setRange(0,0);
     }
   },
   unmute: function() {
-    if (state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(1);
-      });
+    if (this.initialized) {
+      this.env.setRange(1,0);
     }
   },
   setGain: function(gain) {
-    if (state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(gain);
-      });
+      if(this.initialized){
+          this.env.setRange(gain, 0);
+      }
+  },
+  setChordS: function(self, payload) {
+    self.setChord(payload);
+  },
+  setChord: function(payload) {
+    if(this.initialized) {
+      var chord = payload.chord;
+      var note = chord[state.clientId % chord.length];
+      this.setNote(note);
     }
   },
-  touchEnded: function() {
-    return false;
+  setNote: function(note) {
+      if (this.initialized) {
+          this.baseNote = note;
+          this.tri1.freq(midiToFreq(note));
+          this.pulse1.freq(midiToFreq(note+7));
+      }
   },
-  touchStarted: function() {
-    return false;
-  },
-  deviceShaken: function() {
-    return false;
-  }
 }
 
 var glitch = {
