@@ -24,10 +24,11 @@ app.use(express.static(__dirname + m_useRoot));
 server.listen(process.argv[2] || k_portnum);
 console.log("Connected and listening on port " + k_portnum);
 
+var globalParamMap = {};
 var clientMap = {};
 var reverseClientMap = {};
 var clientSocketMap = {};
-var sectionParamMap = {l: {}, r: {}, c: {}};
+var sectionParamMap = {};
 var connectionID = 0;
 var conductorID = -1;
 var conductorSock = -1;
@@ -82,7 +83,7 @@ io.sockets.on("connection", function (socket) {
       }
       clientMap[data.seatingSection].push(socket.myID);
       reverseClientMap[socket.myID] = data.seatingSection;
-      var ackData = sectionParamMap[data.seatingSection];
+      var ackData = sectionParamMap;
       console.log("Extra data ", ackData);
       ackData = ackData || {};
       ackData.seatingSection = data.seatingSection;
@@ -103,20 +104,15 @@ io.sockets.on("connection", function (socket) {
     socket.emit('clientcount', clientData);
   });
   socket.on("changeMovement", function(data) {
-    sectionParamMap['l'].movement = data.movement;
-    sectionParamMap['c'].movement = data.movement;
-    sectionParamMap['r'].movement = data.movement;
+    sectionParamMap.movement = data.movement;
     socket.broadcast.emit("setMovement", {movement: data.movement});
   });
   socket.on("mute", function(data) {
     if (data.scope === "all") {
       socket.broadcast.emit("mute", {});
-      sectionParamMap['l'].mute = true;
-      sectionParamMap['c'].mute = true;
-      sectionParamMap['r'].mute = true;
+      sectionParamMap.mute = true;
     } else if (data.scope === "section") {
       var ids = clientMap[data.target];
-      sectionParamMap[data.target].mute = true;
       if (ids) {
         ids.forEach(function(id) {
           clientSocketMap[id].emit("mute", {});
@@ -131,12 +127,9 @@ io.sockets.on("connection", function (socket) {
   socket.on("unmute", function(data) {
     if (data.scope === "all") {
       socket.broadcast.emit("unmute", {});
-      sectionParamMap['l'].mute = false;
-      sectionParamMap['c'].mute = false;
-      sectionParamMap['r'].mute = false;
+      sectionParamMap.mute = false;
     } else if (data.scope === "section") {
       var ids = clientMap[data.target];
-      sectionParamMap[data.target].mute = false;
       if (ids) {
         ids.forEach(function(id) {
           clientSocketMap[id].emit("unmute", {});
@@ -150,13 +143,10 @@ io.sockets.on("connection", function (socket) {
   });
   socket.on("setGain", function(data) {
     if (data.scope === "all") {
-      sectionParamMap['l'].gain = data.gain;
-      sectionParamMap['r'].gain = data.gain;
-      sectionParamMap['c'].gain = data.gain;
+      sectionParamMap.gain = data.gain;
       socket.broadcast.emit("setGain", {gain: data.gain});
     } else if (data.scope === "section") {
       var ids = clientMap[data.target];
-      sectionParamMap[data.target].gain = data.gain;
       if (ids) {
         ids.forEach(function(id) {
           clientSocketMap[id].emit("setGain", {gain: data.gain});
@@ -171,13 +161,10 @@ io.sockets.on("connection", function (socket) {
   socket.on("setADSR", function(data) {
     var adsr = {a: data.a, d: data.d, s: data.s, r: data.r};
     if (data.scope === "all") {
-      sectionParamMap['l'].ADSR = adsr;
-      sectionParamMap['r'].ADSR = adsr;
-      sectionParamMap['c'].ADSR = adsr;
+      sectionParamMap.ADSR = adsr;
       socket.broadcast.emit("setADSR", adsr);
     } else if (data.scope === "section") {
       var ids = clientMap[data.target];
-      sectionParamMap[data.target].ADSR = adsr;
       if (ids) {
         ids.forEach(function(id) {
           clientSocketMap[id].emit("setADSR", adsr);
@@ -190,11 +177,23 @@ io.sockets.on("connection", function (socket) {
     }
   });
   socket.on("setGlitch", function(data) {
-    sectionParamMap['l'].glitch = data.glitch;
-    sectionParamMap['c'].glitch = data.glitch;
-    sectionParamMap['r'].glitch = data.glitch;
+    sectionParamMap.glitch = data.glitch;
     console.log("Setting glitch to ", data.glitch);
     socket.broadcast.emit("setGlitch", data);
+  });
+  socket.on("setWhisperProb", function(data) {
+    sectionParamMap.whisperProb = data.whisperProb;
+    console.log("Setting whisper prob to ", data.whisperProb);
+    socket.broadcast.emit("setWhisperProb", data);
+  });
+  socket.on("chordChange", function(data) {
+    sectionParamMap.chord = data.chord;
+    console.log("Setting chord to ", data.chord);
+    socket.broadcast.emit("setChord", data);
+  });
+  socket.on("getSeating", function(data) {
+    console.log("Get seating");
+    socket.broadcast.emit("getSeating", data);
   });
   socket.on("disconnect", function () {
     console.log("Socket with myID = " + socket.myID + " disconnected!");
@@ -206,7 +205,7 @@ io.sockets.on("connection", function (socket) {
     clientSocketMap[socket.myID] = socket;
     socket.emit('init', {clientId: socket.myID});
   });
-  socket.emit('init', {clientId: socket.myID});
+  socket.emit('init', {clientId: socket.myID, ackData: sectionParamMap});
 });
 
 
