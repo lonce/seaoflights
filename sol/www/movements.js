@@ -182,7 +182,7 @@ var tap = {
   messageHandler: function(sock) {
     var self = this;
     sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
-    sock.on("setChord", function(payload) {self.setChord(self, payload)});
+    sock.on("setChord", function(payload) {self.setChordS(self, payload)});
   },
   touchStarted: function() {
     if (state.seatingSection) {
@@ -198,35 +198,49 @@ var tap = {
     }
   },
   noteOn: function() {
+    if(this.env) {
     this.env.triggerAttack();
+    }
   },
   noteOff: function() {
-    this.env.triggerRelease();
+    if(this.env) {
+      this.env.triggerRelease();
+    }
   },
   setChord: function(self, payload) {
+    self.setChord(payload);
+  },
+  setChord: function(payload) {
     var chord = payload.chord;
     var note = chord[state.clientId % chord.length];
-    self.setNote(note);
+    this.setNote(note);
   },
   setNote: function(note) {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      var freq = osc.offset(midiToFreq(note));
-      console.log("Setting osc freq to ", freq);
-      osc.osc.freq(freq);
-    });
+    if ( state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        var freq = osc.offset(midiToFreq(note));
+        console.log("Setting osc freq to ", freq);
+        osc.osc.freq(freq);
+      });
+    }
   },
   setADSR: function(self, payload) {
-    self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+    if(self.env) self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
   },
   mute: function() {
-    this.env.mult(0);
+    if(this.env){
+      this.env.mult(0);
+    }
   },
   unmute: function() {
+    if(this.env){
     this.env.mult(1);
+    }
   },
   setGain: function(gain) {
+    if(this.env){
     this.env.mult(gain);
+    }
   }
 }
 
@@ -297,14 +311,16 @@ var drone = {
     this.bg = clientConfig.visual.bg;
   },
   cleanup: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc.stop();
-      if (osc.osc) osc.osc.dispose();
-    });
-    this.modOsc.stop();
-    if (this.modOsc) this.modOsc.dispose();
-    if (this.reverb) this.reverb.dispose();
-    if (this.meter) this.meter.dispose();
+    if ( state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.stop();
+        if (osc.osc) osc.osc.dispose();
+      });
+      this.modOsc.stop();
+      if (this.modOsc) this.modOsc.dispose();
+      if (this.reverb) this.reverb.dispose();
+      if (this.meter) this.meter.dispose();
+    }
   },
   draw: function() {
     background(0);
@@ -330,22 +346,25 @@ var drone = {
     var self = this;
   },
   mute: function() {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.amp(0);
-    });
+    if (state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.amp(0);
+      });
+    }
   },
   unmute: function() {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.amp(1);
-    });
+    if (state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.amp(1);
+      });
+    }
   },
   setGain: function(gain) {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.amp(gain);
-    });
+    if (state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.amp(gain);
+      });
+    }
   },
 }
 
@@ -404,13 +423,14 @@ var glitch = {
     this.bg = clientConfig.visual.bg;
   },
   cleanup: function() {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.stop();
-      if (osc.osc) osc.osc.dispose();
-    });
-    if (this.filter) this.filter.dispose();
-    if (this.meter) this.meter.dispose();
+    if ( state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.stop();
+        if (osc.osc) osc.osc.dispose();
+      });
+      if (this.filter) this.filter.dispose();
+      if (this.meter) this.meter.dispose();
+    }
   },
   draw: function() {
     var seatingSection = state.seatingSection || 'c';
@@ -421,7 +441,7 @@ var glitch = {
       var level = 0;
     }
     var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[seatingSection];
+    var baseColor = this.backgroundColors[state.seatingSection];
     var bgColor;
     var glitchVal = this.glitchFreq*this.glitch;
     var thisThold = random(100);
@@ -429,7 +449,7 @@ var glitch = {
     if(glitchVal > thisThold) {
       var self = this;
       var randomOffset = random(-this.glitchOffset, this.glitchOffset)*this.glitch;
-      this.oscBank[seatingSection].forEach(function(osc) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
         osc.osc.freq(self.baseFreq + randomOffset);
       });
       bgColor = color(
@@ -465,22 +485,25 @@ var glitch = {
     self.glitchFreq = payload.glitchFreq;
   },
   mute: function() {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.amp(0);
-    });
+    if ( state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.amp(0);
+      });
+    }
   },
   unmute: function() {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.amp(1);
-    });
+    if ( state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.amp(1);
+      });
+    }
   },
   setGain: function(gain) {
-    var seatingSection = state.seatingSection || 'c';
-    this.oscBank[seatingSection].forEach(function(osc) {
-      osc.osc.amp(gain);
-    });
+    if ( state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.amp(gain);
+      });
+    }
   },
 }
 

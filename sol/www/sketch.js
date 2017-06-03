@@ -46,14 +46,6 @@ function initClient(data) {
     console.log("Server said my movement should be ", dat.movement);
     setMovement(dat);
   }
-  if(dat.gain) {
-    console.log("Server said my gain should be ", dat.gain);
-    setGain(data);
-  }
-  if(dat.mute) {
-    console.log("Server said my mute should be ", dat.mute);
-    muteClient();
-  }
 }
 
 function getSeatingSock(data) {
@@ -112,6 +104,26 @@ function seatingCheck(data) {
     sendMessage("setLocation", {seatingSection: state.seatingSection});
   } else {
     console.log("Server has correct seating information for me, moving on");
+    while(!state.movement) {sleep(10)};
+    if(data.gain) {
+      console.log("Server said my gain should be ", data.gain);
+      setGain(data);
+    }
+    if(data.mute) {
+      console.log("Server said my mute should be ", data.mute);
+      muteClient();
+    }
+    if(data.glitch) {
+      if (state.movement && state.movement.setGlitch) {
+        state.movement.setGlitch(data);
+      }
+    }
+    if(data.chord && state.movement && state.movement.setChord) {
+      state.movement.setChord(data);
+    }
+    if(data.ADSR && state.movement && state.movement.setADSR) {
+      state.movement.setADSR({a: data.a, d: data.d, s: data.s, r: data.r});
+    }
   }
 }
 
