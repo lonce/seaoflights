@@ -137,6 +137,8 @@ function seatingCheck(data) {
 
 function muteClient(data) {
   if (state.movement.mute) {
+    console.log(state.movementId);
+    console.log(state.movement);
     state.movement.mute();
   }
 }
