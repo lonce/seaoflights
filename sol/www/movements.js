@@ -560,17 +560,23 @@ var shakey = {
   messageHandler: function(sock) {
   },
   mute: function() {
+    if(this.sound) {
     this.sound.setVolume(0);
+    }
   },
   unmute: function() {
+    if(this.sound) {
     this.sound.setVolume(1);
+    }
   },
   setGain: function(gain) {
+    if(this.sound) {
     this.sound.setVolume(gain);
+    }
   },
   deviceShaken: function() {
    console.log("Shaken!");
-   if (this.sound.isLoaded()) {
+   if (this.sound && this.sound.isLoaded()) {
      console.log("Play sound");
      this.sound.play();
    }
