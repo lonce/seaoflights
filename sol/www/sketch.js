@@ -188,7 +188,10 @@ function touchStarted() {
 }
 
 function touchEnded() {
+  console.log("Touch Ended");
+  console.log(state.movement);
   if(state.movement && state.movement.touchEnded) {
+    console.log("Calling Touch Ended");
     state.movement.touchEnded();
   }
 }

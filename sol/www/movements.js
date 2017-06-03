@@ -188,6 +188,7 @@ var tap = {
     sock.on("setChord", function(payload) {self.setChordS(self, payload)});
   },
   touchStarted: function() {
+    console.log("touch started");
     if (state.seatingSection) {
       this.noteOff();
       this.noteOn();
