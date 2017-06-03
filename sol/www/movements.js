@@ -17,7 +17,7 @@ var nosection = {
       this.tapSound = loadSound("assets/tapSound.mp3");
       this.meter = new p5.Amplitude();
       this.bg = clientConfig.visual.bg;
-      this.setShakeThreshold(this.shakeThreshold);
+      setShakeThreshold(this.shakeThreshold);
     },
     cleanup: function() {
        if(this.meter) this.meter.dispose();
