@@ -578,6 +578,7 @@ var shakey = {
       this.restOfInit(sock);
     }
   },
+  timedOut: false,
   restOfInit: function(sock) {
     console.log("Initing rest");
     var self = this;
@@ -644,10 +645,13 @@ var shakey = {
   },
   deviceShaken: function() {
     if(this.initialized) {
-      console.log("Shaken!");
       if (this.sound && this.sound.isLoaded() && !this.sound.isPlaying()) {
-        console.log("Play sound");
         this.sound.play();
+        this.timedOut = true;
+        var self = this;
+        setTimeout(function() {
+          self.timedOut = false;
+        }, 2000);
       }
     }
   }
