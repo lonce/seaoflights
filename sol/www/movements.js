@@ -195,6 +195,7 @@ var tap = {
     }
   },
   touchEnded: function() {
+    console.log("touch ended');
     if (state.seatingSection) {
       this.noteOff();
       return false;
