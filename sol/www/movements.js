@@ -530,7 +530,6 @@ var drone = {
       }
   },
   setGlitch: function(self, payload) {
-    console.log("setting glitch to ", payload.glitch);
     self.glitch = payload.glitch;
     var noiseGain = max([0, 0.66*(0.5-self.glitch)]);
     console.log(noiseGain);
