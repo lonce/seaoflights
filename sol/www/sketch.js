@@ -105,6 +105,7 @@ function seatingCheck(data) {
   } else {
     console.log("Server has correct seating information for me, moving on");
     while(!state.movement) {sleep(10)};
+    sleep(500);
     if(data.gain) {
       console.log("Server said my gain should be ", data.gain);
       setGain(data);
