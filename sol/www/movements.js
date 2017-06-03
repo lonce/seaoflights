@@ -6,7 +6,6 @@ var sampleFiles = [
 ];
 
 //TODO: Record samples
-//TODO: Add alert that asks to tap once and shake for vibraslap
 //TODO: No more section mutes
 
 
@@ -105,7 +104,7 @@ var vibraslap = {
   shakeThreshold: 20,
   initialized: false,
   init: function(sock) {
-    this.slap = loadSound("assets/shakeSound.mp3");
+    this.slap = loadSound("assets/shakeSound.mp3", function() { alert("Your phone is ready. Tap the black screen once to activate and shake your phone to play!")});
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
     setShakeThreshold(this.shakeThreshold);

@@ -30,7 +30,7 @@ function globalMessageHandler(sock) {
 
 function audienceInit() {
   // TODO: Make these pretty
-  //alert("Please make sure your phone isn't silenced, and the volume is turned up.");
+  alert("Please make sure your volume is turned up (phone not silenced) and lock your rotation. Reload the page if your phone stops making light and sound. Enjoy!");
   //alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
   //alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
   globalMessageHandler(socket);
