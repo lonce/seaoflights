@@ -49,28 +49,28 @@ var tapping = {
       max: 2,
       value: 0.05,
       step: 0.01,
-      change: updateADSR
+      slide: updateADSR
     });
     $('.d-slider').slider({
       min: 0,
       max: 2,
       value: 0.05,
       step: 0.01,
-      change: updateADSR
+      slide: updateADSR
     });
     $('.s-slider').slider({
       min: 0,
       max: 1,
       value: 1,
       step: 0.01,
-      change: updateADSR
+      slide: updateADSR
     });
     $('.r-slider').slider({
       min: 0,
       max: 10,
       value: 0.1,
       step: 0.05,
-      change: updateADSR
+      slide: updateADSR
     });
     function updateADSR(event, ui) {
       var sliderCell = $(ui.handle).parent().parent();
@@ -84,7 +84,7 @@ var tapping = {
       socket.emit('setADSR', {scope: scope, target: target, a: atk, d: dec, s: sus, r: rel});
     }
     this.chords.forEach(function (chord, idx) {
-      var chordBtn = $("<button class='tap-mv chord-btn'>Chord ", idx, "</button>");
+      var chordBtn = $("<button class='tap-mv chord-btn'>Chord "+  idx+ "</button>");
       chordBtn.on('click', function() {
         console.log("Sending new chord");
         socket.emit('chordChange', {chord: chord});
@@ -107,30 +107,21 @@ var drone = {
     ],
   init: function() {
     this.chords.forEach(function (chord, idx) {
-      var chordBtn = $("<button class='drone-mv chord-btn'>Chord ", idx, "</button>");
+      var chordBtn = $("<button class='drone-mv chord-btn'>Chord "+ idx+ "</button>");
       chordBtn.on('click', function() {
         console.log("Sending new chord");
         socket.emit('chordChange', {chord: chord});
       });
       $('.generalControls').append(chordBtn);
     });
-  },
-  cleanup: function() {
-    $('.drone-mv').remove();
-  }
-}
-
-var glitch = {
-  name: "3-) Glitch movement",
-  init: function() {
-    var glitchSlider = $("<div class='glitch-slider glitch-mv'></div>");
+    var glitchSlider = $("<div class='glitch-slider drone-mv'></div>");
     $('.generalControls').append(glitchSlider);
     $('.glitch-slider').slider({
       min: 0,
       max: 1,
       value: 0,
       step: 0.01,
-      change: function(event, ui) {
+      slide: function(event, ui) {
         var glitchVal = parseFloat(ui.value);
         console.log("Setting glitch to ", glitchVal);
         socket.emit('setGlitch', {glitch: glitchVal});
@@ -138,7 +129,7 @@ var glitch = {
     });
   },
   cleanup: function() {
-    $('.glitch-mv').remove();
+    $('.drone-mv').remove();
   }
 }
 
@@ -161,6 +152,5 @@ var movements = [
   vibraslap,
   tapping,
   drone,
-  glitch,
   shakey
 ]

@@ -165,6 +165,7 @@ io.sockets.on("connection", function (socket) {
   socket.on("setADSR", function(data) {
     var adsr = {a: data.a, d: data.d, s: data.s, r: data.r};
     if (data.scope === "all") {
+        console.log("Setting ADSR ", adsr);
       sectionParamMap.ADSR = adsr;
       socket.broadcast.emit("setADSR", adsr);
     } else if (data.scope === "section") {
@@ -183,7 +184,7 @@ io.sockets.on("connection", function (socket) {
   socket.on("setGlitch", function(data) {
     sectionParamMap.glitch = data.glitch;
     console.log("Setting glitch to ", data.glitch);
-    socket.broadcast.emit("setGlitch", data);
+    socket.broadcast.emit("setGlitch", {glitch: data.glitch});
   });
   socket.on("setWhisperProb", function(data) {
     sectionParamMap.whisperProb = data.whisperProb;

@@ -5,6 +5,10 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
+//TODO: Record samples
+//TODO: Add alert that asks to tap once and shake for vibraslap
+//TODO: No more section mutes
+
 
 var welcome = {
   backgroundColor: {H: 10, S: 50, B:80},
@@ -57,7 +61,7 @@ var welcome = {
             fill(bgColor);
             rect(0, 0, width, height);
             if(this.whisper.isLoaded() && (random(1000) < this.whisperProb)) {
-                var thisWhisper = this.foreignWhispers[random(this.foreignWhispers.length)];
+                var thisWhisper = this.foreignWhispers[floor(random(this.foreignWhispers.length))];
                 if (thisWhisper.isLoaded()) {
                     thisWhisper.play();
                 }
@@ -101,7 +105,7 @@ var vibraslap = {
   shakeThreshold: 20,
   initialized: false,
   init: function(sock) {
-    this.slap = loadSound("assets/vibraslap.mp3");
+    this.slap = loadSound("assets/shakeSound.mp3");
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
     setShakeThreshold(this.shakeThreshold);
@@ -204,7 +208,6 @@ var tap = {
   },
   restOfInit: function(sock) {
     console.log("Initing rest");
-    this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.env = new p5.Env();
     this.env.setADSR(
@@ -226,17 +229,22 @@ var tap = {
       self.reverb.process(osc.osc, 0.5, 0.8);
     });
     this.bg = clientConfig.visual.bg;
+    this.messageHandler(sock);
     this.initialized = true;
   },
   cleanup: function() {
     if(this.initialized) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.stop();
-        if(osc.osc) osc.osc.dispose();
-      });
-      if(this.meter) this.meter.dispose();
-      if(this.reverb) this.reverb.dispose();
       this.initialized = false;
+      var self = this;
+      var seat = state.seatingSection;
+      setTimeout(function() {
+        self.oscBank[seat].forEach(function(osc) {
+            osc.osc.stop();
+            if(osc.osc) osc.osc.dispose();
+        });
+        if(self.meter) self.meter.dispose();
+        if(self.reverb) self.reverb.dispose();
+    }, 7000);
     }
   },
   draw: function() {
@@ -263,10 +271,8 @@ var tap = {
   },
   messageHandler: function(sock) {
     var self = this;
-    if(this.initialized) {
-      sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
-      sock.on("setChord", function(payload) {self.setChordS(self, payload)});
-    }
+    sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
+    sock.on("setChord", function (payload) {self.setChordS(self, payload)});
   },
   touchStarted: function() {
     console.log("touch started");
@@ -312,7 +318,11 @@ var tap = {
     }
   },
   setADSR: function(self, payload) {
-    if(this.initialized && self.env) self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+    console.log("set ADSR");
+    if(this.initialized && self.env) {
+        console.log("Setting ADSR");
+        self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+    }
   },
   mute: function() {
     if(this.initialized && this.env){
@@ -338,23 +348,13 @@ var drone = {
     r: {H: 70, S: 50, B:80}
   },
   initialized: false,
-  baseNote: 0,
-  deviceMoved: function() {
-      console.log("moved");
-      if(this.initialized) {
-          //var normZ = abs((rotationZ - 180)/360.0);
-          //var normX = (rotationX/180.0)
-          //var rampedZ = pow(normZ, 2);
-          //var lpFreq = 350 + rampedZ*3000;
-          //console.log("LPF: ", lpFreq);
-        //console.log("initialized and moved. Z: ", rotationZ, " x: ", rotationX, " y: ", rotationY);
-        //this.lpf.freq(lpFreq);
-        var modLevel = (rotationX/180.0)*100;
-        console.log(modLevel);
-        this.tri2.freq(midiToFreq(this.baseNote) + modLevel);
-        //this.pulse2.freq(midiToFreq(this.baseNote + 7) + (rotationY/180.0)*10);
-      }
-  },
+  baseNote: 48,
+  clinkTimeout: 5000,
+  muteClink: false,
+  baseFreq: 440,
+  glitchFreq: 100,
+  glitch: 0,
+  glitchOffset: 2000,
   init: function(sock) {
     var self = this;
     if (!state.seatingSection) {
@@ -369,20 +369,25 @@ var drone = {
     console.log("Initing rest");
     this.meter = new p5.Amplitude();
 
-
     this.pulse1 = new p5.Pulse();
     this.pulse2 = new p5.Pulse();
     this.tri1 = new p5.TriOsc();
     this.tri2 = new p5.TriOsc();
     this.noise = new p5.Noise();
 
-    this.pulseGn1 = new p5.Gain(0);
-    this.pulseGn2 = new p5.Gain(0);
-    this.triGn1 = new p5.Gain(1);
-    this.triGn2 = new p5.Gain(1);
-    this.noiseGn = new p5.Gain(0);
+    this.pulseGn1 = new p5.Gain();
+    this.pulseGn1.amp(0.33);
+    this.pulseGn2 = new p5.Gain();
+    this.pulseGn2.amp(0.33)
+    this.triGn1 = new p5.Gain();
+    this.triGn1.amp(1);
+    this.triGn2 = new p5.Gain();
+    this.triGn2.amp(1);
+    this.noiseGn = new p5.Gain();
+    this.noiseGn.amp(0.3);
 
     this.lpf = new p5.LowPass();
+    this.lpf.res(15);
     this.rev = new p5.Reverb();
     this.env = new p5.Env();
 
@@ -416,15 +421,19 @@ var drone = {
 
     this.lpf.disconnect();
     this.rev.process(this.lpf, 2, 2);
+
     this.bg = clientConfig.visual.bg;
     this.messageHandler(sock);
     this.initialized = true;
   },
   cleanup: function() {
     if (this.initialized) {
+        this.initialized = false;
       this.oscillators.forEach(function(osc) {
-        osc.stop();
-        osc.dispose();
+          if(osc) {
+              osc.stop();
+              osc.dispose();
+          }
       });
       this.gains.forEach(function(gain) {
           gain.dispose();
@@ -437,27 +446,47 @@ var drone = {
   },
   draw: function() {
     background(0);
-    var seatingSection = state.seatingSection || 'c';
-    if (this.meter) {
-      var level = this.meter.getLevel();
-    } else {
-      var level = 0;
+    if (this.initialized) {
+        var seatingSection = state.seatingSection || 'c';
+        if (this.meter) {
+          var level = this.meter.getLevel();
+        } else {
+          var level = 0;
+        }
+        var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+        var baseColor = this.backgroundColors[seatingSection];
+        var glitchVal = this.glitchFreq*this.glitch;
+        var thisThold = random(100);
+        if(glitchVal > thisThold) {
+          console.log("Glitching")
+          var self = this;
+          var randomOffset = random(this.glitchOffset)*this.glitch;
+          this.oscillators.forEach(function(osc, idx) {
+              if(idx < self.oscillators.length-1) {
+                  osc.freq(midiToFreq(self.baseNote) + randomOffset);
+              }
+          });
+          bgColor = color(
+              baseColor.H + random(-this.glitchOffset/20, this.glitchOffset/20)*this.glitch,
+              baseColor.S,
+              baseColor.B,
+              bgAlpha);
+        } else {
+          bgColor = color(
+              baseColor.H,
+              baseColor.S,
+              baseColor.B,
+              bgAlpha);
+        }
+        noStroke();
+        fill(bgColor);
+        rect(0, 0, width, height);
     }
-    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[seatingSection];
-    var bgColor = color(
-        baseColor.H,
-        baseColor.S,
-        baseColor.B,
-        bgAlpha);
-
-    noStroke();
-    fill(bgColor);
-    rect(0, 0, width, height);
   },
   messageHandler: function(sock) {
     var self = this;
     sock.on("setChord", function(payload) {self.setChordS(self, payload)});
+    sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
   },
   mute: function() {
     if (this.initialized) {
@@ -491,151 +520,35 @@ var drone = {
           this.pulse1.freq(midiToFreq(note+7));
       }
   },
-}
-
-var glitch = {
-  backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B: 80},
-    r: {H: 70, S: 50, B:80}
-  },
-  filterParams: {
-    max: 5000,
-    min: 100,
-    qMax: 15,
-    qMin: 0.001
-  },
-  oscBank: {
-    l: [
-    {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null}
-    ],
-    c: [
-    {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null}
-    ],
-    r: [
-    {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null}
-    ],
-  },
-  initialized: false,
-  baseFreq: 440,
-  glitchFreq: 100,
-  glitch: 0,
-  glitchOffset: 100,
-  init: function(sock) {
-    var self = this;
-    if (!state.seatingSection) {
-      getSeatingCb(function() {
-        self.restOfInit(sock);
-      });
-    } else {
-      this.restOfInit(sock);
-    }
-  },
-  restOfInit: function(sock) {
-    console.log("Initing rest");
-    this.meter = new p5.Amplitude();
-    this.reverb = new p5.Reverb();
-    this.reverb.amp(8);
-    var self = this;
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc = new osc.type();
-      osc.osc.amp(1);
-      osc.osc.freq(osc.offset(440));
-      osc.osc.start();
-      osc.osc.disconnect();
-      self.reverb.process(osc.osc, 0.5, 0.8);
-    });
-    this.bg = clientConfig.visual.bg;
-    this.messageHandler(sock);
-    this.initialized = true;
-  },
-  cleanup: function() {
-    if (this.initialized) {
-      this.initialized = false;
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.stop();
-        if (osc.osc) osc.osc.dispose();
-      });
-      if (this.filter) this.filter.dispose();
-      if (this.meter) this.meter.dispose();
-    }
-  },
-  draw: function() {
-    background(0);
-    if (this.initialized) {
-      var seatingSection = state.seatingSection || 'c';
-      if (this.meter) {
-        var level = this.meter.getLevel();
-      } else {
-        var level = 0;
-      }
-      var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-      var baseColor = this.backgroundColors[state.seatingSection];
-      var bgColor;
-      var glitchVal = this.glitchFreq*this.glitch;
-      var thisThold = random(100);
-      console.log("Glitch prob: ", glitchVal, " threshold:", thisThold);
-      if(glitchVal > thisThold) {
-        var self = this;
-        var randomOffset = random(-this.glitchOffset, this.glitchOffset)*this.glitch;
-        this.oscBank[state.seatingSection].forEach(function(osc) {
-          osc.osc.freq(self.baseFreq + randomOffset);
-        });
-        bgColor = color(
-            baseColor.H + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
-            baseColor.S + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
-            baseColor.B + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
-            bgAlpha);
-      } else {
-        bgColor = color(
-            baseColor.H,
-            baseColor.S,
-            baseColor.B,
-            bgAlpha);
-      }
-      noStroke();
-      fill(bgColor);
-      rect(0, 0, width, height);
-    }
-  },
-  messageHandler: function(sock) {
-    var self = this;
-    sock.on("setNote", function (payload) {self.setNote(self, payload)});
-    sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
-    sock.on("setGlitchFreq", function(payload) {self.setGlitchFreq(self, payload)});
-  },
-  setNote: function(self, payload) {
-    self.baseFreq = midiToFreq(payload.note);
-  },
   setGlitch: function(self, payload) {
     console.log("setting glitch to ", payload.glitch);
     self.glitch = payload.glitch;
+    var noiseGain = max([0, 0.66*(0.5-self.glitch)]);
+    console.log(noiseGain);
+    self.noiseGn.amp(noiseGain);
   },
-  setGlitchFreq: function(self, payload) {
-    self.glitchFreq = payload.glitchFreq;
-  },
-  mute: function() {
-    if (this.initialized) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(0);
-      });
-    }
-  },
-  unmute: function() {
-    if (this.initialized) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(1);
-      });
-    }
-  },
-  setGain: function(gain) {
-    if (this.initialized) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        if (osc.osc) {
-          osc.osc.amp(gain);
-        }
-      });
-    }
+  deviceMoved: function() {
+      if(this.initialized) {
+
+          var x = (((rotationX + 180) + 90) % 360) - 180 ;
+          //if(x< -90) x = -90;
+          //if(x>90) x = 90;
+          var normX = abs(x/180);
+          var lpFreq = 350 + pow(normX, 3)*3000;
+          this.lpf.freq(lpFreq);
+
+
+          var normZ = abs((rotationZ - 180)/360.0);
+          //var rampedZ = pow(normZ, 2);
+          //var lpFreq = 350 + rampedZ*3000;
+          //console.log("LPF: ", lpFreq);
+        //console.log("initialized and moved. Z: ", rotationZ, " x: ", rotationX, " y: ", rotationY);
+        //this.lpf.freq(lpFreq);
+        var modLevel = normZ*1000;
+        //console.log(modLevel);
+        this.tri2.freq(midiToFreq(this.baseNote) + modLevel);
+        //this.pulse2.freq(midiToFreq(this.baseNote + 7) + (rotationY/180.0)*10);
+      }
   },
 }
 
@@ -736,7 +649,6 @@ var movements = [
   vibraslap,
   tap,
   drone,
-  glitch,
   shakey
 ]
 
