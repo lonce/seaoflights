@@ -6,50 +6,20 @@ var sampleFiles = [
 ];
 
 var nosection = {
-  initialADSR: {
-                 a: 0.01,
-                 d: 0.1,
-                 s: 1,
-                 r: 0.05
-               },
   backgroundColor: {H: 10, S: 50, B:80},
-  oscBank: [
-    {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
-    {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-    {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-  ],
+  shakeThreshold: 20,
   init: function(sock) {
-      this.messageHandler(sock);
+      this.shakeSound = loadSound("assets/shakeSound.mp3");
+      this.tapSound = loadSound("assets/tapSound.mp3");
       this.meter = new p5.Amplitude();
-      this.env = new p5.Env();
-      this.env.setADSR(
-          this.initialADSR.a,
-          this.initialADSR.d,
-          this.initialADSR.s,
-          this.initialADSR.r);
-      this.env.setRange(1, 0);
-      this.reverb = new p5.Reverb();
-      this.reverb.amp(8);
-      var self = this;
-      this.oscBank.forEach(function(osc) {
-        osc.osc = new osc.type();
-        osc.osc.amp(self.env);
-        osc.osc.freq(osc.offset(440));
-        osc.osc.start();
-        osc.osc.disconnect();
-        self.reverb.process(osc.osc, 0.5, 0.8);
-      });
       this.bg = clientConfig.visual.bg;
+      this.setShakeThreshold(this.shakeThreshold);
     },
     cleanup: function() {
-               this.oscBank.forEach(function(osc) {
-                 osc.osc.stop();
-                 if(osc.osc) osc.osc.dispose();
-               });
-               if(this.env) this.env.dispose();
-               if(this.meter) this.meter.dispose();
-               if(this.reverb) this.reverb.dispose();
-             },
+       if(this.meter) this.meter.dispose();
+       if(this.tapSound) this.tapSound.dispose();
+       if(this.shakeSound) this.shakeSound.dispose();
+     },
     draw: function() {
             background(0);
             var level = this.meter.getLevel();
@@ -65,34 +35,27 @@ var nosection = {
             fill(bgColor);
             rect(0, 0, width, height);
           },
-    messageHandler: function(sock) {
-                      var self = this;
-                      sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
-    },
     touchStarted: function() {
-                    this.noteOff();
-                    this.noteOn();
+                    if(this.tapSound.isLoaded()) {
+                      this.tapSound.play();
+                    }
                   },
-    touchEnded: function() {
-                  this.noteOff();
-                },
-    noteOn: function() {
-              this.env.triggerAttack();
-            },
-    noteOff: function() {
-               this.env.triggerRelease();
-             },
-    setADSR: function(self, payload) {
-               self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
-             },
+    deviceShaken: function() {
+                    if(this.shakeSound.isLoaded()) {
+                      this.shakeSound.play();
+                    }
+                  },
     mute: function() {
-            this.env.mult(0);
+            this.tapSound.amp(0);
+            this.shakeSound.amp(0);
           },
     unmute: function() {
-              this.env.mult(1);
+            this.tapSound.amp(1);
+            this.shakeSound.amp(1);
             },
     setGain: function(gain) {
-               this.env.mult(gain);
+            this.tapSound.amp(gain);
+            this.shakeSound.amp(gain);
              }
 }
 
@@ -526,7 +489,6 @@ var shakey = {
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
     this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
-    this.sound.playMode('restart');
     setShakeThreshold(this.shakeThreshold);
   },
   cleanup: function() {
