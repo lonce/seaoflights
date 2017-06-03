@@ -139,15 +139,9 @@ var vibraslap = {
   },
   mute: function() {
     this.muted = true;
-    if (this.slap && this.slap.isLoaded()) {
-      this.slap.mult(0);
-    }
   },
   unmute: function() {
     this.muted = false;
-    if (this.slap && this.slap.isLoaded()) {
-      this.slap.mult(1);
-    }
   },
   setGain: function(gain) {
     if (this.initialized) {
