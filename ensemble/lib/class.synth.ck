@@ -69,9 +69,9 @@ public class Synth {
         .99 => dFilter.prad;
         .05 => dFilter.gain;
         1 => dFilter.eqzs;
-        dEnv.attackTime(2::second);
+        dEnv.attackTime(4::second);
         dEnv.sustainLevel(1);
-        dEnv.releaseTime(8::second);
+        dEnv.releaseTime(12::second);
         10 => dMod.freq;
         tuneDrone(dNote1, dNote2);
 
@@ -190,12 +190,12 @@ public class Synth {
     fun void gfxFadeIn() {
         "/screen/fadeIn" => string path;
         gfxXmit.startMsg(path, "f");
-        atkTime => gfxXmit.addFloat;
+        20.0 => gfxXmit.addFloat;
     }
 
     fun void gfxFadeOut() {
         "/screen/fadeOut" => string path;
         gfxXmit.startMsg(path, "f");
-        rlsTime => gfxXmit.addFloat;
+        30.0 => gfxXmit.addFloat;
     }
 }
