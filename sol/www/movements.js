@@ -521,7 +521,7 @@ var glitch = {
   },
   deviceShaken: function() {
     return false;
-  }
+  },
   setGain: function(gain) {
     if ( state.seatingSection) {
       this.oscBank[state.seatingSection].forEach(function(osc) {
