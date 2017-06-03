@@ -559,7 +559,7 @@ var drone = {
 }
 
 var shakey = {
-  shakeThreshold: 35,
+  shakeThreshold: 25,
   backgroundColors: {
     l: {H: 10, S: 50, B:80},
     c: {H: 40, S: 50, B: 80},
