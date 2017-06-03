@@ -123,7 +123,8 @@ function seatingCheck(data) {
     }
     if(data.glitch) {
       if (state.movement && state.movement.setGlitch) {
-        state.movement.setGlitch(data);
+        console.log(data.glitch);
+        state.movement.setGlitch({glitch: data.glitch});
       }
     }
     if(data.chord && state.movement && state.movement.setChord) {
