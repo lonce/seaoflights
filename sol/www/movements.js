@@ -12,272 +12,283 @@ var nosection = {
   whisperProb: 5,
   whisperDenom: 250,
   init: function(sock) {
-      this.whisper = loadSound("assets/whisper.mp3");
-      this.shakeSound = loadSound("assets/shakeSound.mp3");
-      this.messageHandler(sock);
-      this.tapSound = loadSound("assets/tapSound.mp3");
-      this.meter = new p5.Amplitude();
-      this.bg = clientConfig.visual.bg;
-      setShakeThreshold(this.shakeThreshold);
-    },
-    cleanup: function() {
+    this.whisper = loadSound("assets/whispers/en.mp3");
+    this.foreignWhispers = [
+      loadSound("assets/whispers/tur.mp3"),
+      loadSound("assets/whispers/ger.mp3"),
+      loadSound("assets/whispers/chi.mp3"),
+      loadSound("assets/whispers/fre.mp3"),
+      loadSound("assets/whispers/ita.mp3"),
+      loadSound("assets/whispers/jap.mp3"),
+      loadSound("assets/whispers/hin.mp3"),
+      loadSound("assets/whispers/ara.mp3"),
+      loadSound("assets/whispers/kur.mp3"),
+      loadSound("assets/whispers/spa.mp3"),
+      ];
+    this.messageHandler(sock);
+    this.meter = new p5.Amplitude();
+    this.bg = clientConfig.visual.bg;
+    setShakeThreshold(this.shakeThreshold);
+    this.initialized = true;
+  },
+  cleanup: function() {
+    if(this.initialized) {
        if(this.meter) this.meter.dispose();
-       if(this.tapSound) this.tapSound.dispose();
-       if(this.shakeSound) this.shakeSound.dispose();
-     },
-    draw: function() {
-            background(0);
-            var level = this.meter.getLevel();
-            var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-            var baseColor = this.backgroundColor;
-            var bgColor = color(
-                baseColor.H,
-                baseColor.S,
-                baseColor.B,
-                bgAlpha);
+       if(this.whisper) this.whisper.dispose();
+       this.foreignWhispers.forEach(function (whisper) {
+         whisper.dispose();
+       });
+    }
+  },
+  draw: function() {
+          background(0);
+          var level = this.meter.getLevel();
+          var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+          var baseColor = this.backgroundColor;
+          var bgColor = color(
+              baseColor.H,
+              baseColor.S,
+              baseColor.B,
+              bgAlpha);
 
-            noStroke();
-            fill(bgColor);
-            rect(0, 0, width, height);
-            if(this.whisper.isLoaded() && (random(1000) < this.whisperProb)) {
-              console.log("play whisper");
-              this.whisper.play();
+          noStroke();
+          fill(bgColor);
+          rect(0, 0, width, height);
+          if(this.whisper.isLoaded() && (random(1000) < this.whisperProb)) {
+            var thisWhisper = this.foreignWhispers[random(this.foreignWhispers.length)];
+            if (thisWhisper.isLoaded()) {
+              thisWhisper.play();
             }
-          },
-    messageHandler: function(sock) {
+          }
+        },
+  messageHandler: function(sock) {
                     var self = this;
                     sock.on("setWhisperProb",function (payload) {self.setWhisperProb(self, payload)});
-                    },
-    touchStarted: function() {
-                    if(this.tapSound.isLoaded()) {
-                      this.tapSound.play();
-                    }
                   },
-    touchEnded: function() {
-      console.log("nosec touch ended");
-      return false;
-    },
-    setWhisperProb: function(self, payload) {
-                      self.whisperProb = payload.whisperProb;
-                    },
-    deviceShaken: function() {
-                    if(this.shakeSound.isLoaded()) {
-                      this.shakeSound.play();
-                    }
+  touchStarted: function() {
+                  if(this.whisper.isLoaded()) {
+                    this.whisper.play();
+                  }
+                },
+  setWhisperProb: function(self, payload) {
+                    self.whisperProb = payload.whisperProb;
                   },
-    mute: function() {
-            this.tapSound.amp(0);
-            this.shakeSound.amp(0);
-            this.whisper.amp(0);
-          },
-    unmute: function() {
-            this.tapSound.amp(1);
-            this.shakeSound.amp(1);
+  mute: function() {
+          this.whisper.amp(0);
+          this.foreignWhispers.forEach(function(whisper) {
+            whisper.amp(0);
+          });
+        },
+  unmute: function() {
             this.whisper.amp(1);
-            },
-    setGain: function(gain) {
-            this.tapSound.amp(gain);
-            this.shakeSound.amp(gain);
+            this.foreignWhispers.forEach(function(whisper) {
+              whisper.amp(1);
+            });
+          },
+  setGain: function(gain) {
             this.whisper.amp(gain);
-             }
+            this.foreignWhispers.forEach(function(whisper) {
+              whisper.amp(gain);
+            });
+           }
 }
 
 var tap = {
   initialADSR: {
-    a: 0.01,
-    d: 0.1,
-    s: 1,
-    r: 0.05
-  },
+                 a: 0.01,
+                 d: 0.1,
+                 s: 1,
+                 r: 0.05
+               },
   backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B: 80},
-    r: {H: 70, S: 50, B:80}
-  },
+                      l: {H: 10, S: 50, B:80},
+                      c: {H: 40, S: 50, B: 80},
+                      r: {H: 70, S: 50, B:80}
+                    },
   filterParams: {
-    max: 5000,
-    min: 100,
-    qMax: 15,
-    qMin: 0.001
-  },
+                  max: 5000,
+                  min: 100,
+                  qMax: 15,
+                  qMin: 0.001
+                },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
-                  {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-                  {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-                ],
-             c: [
-                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
-                  {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-                  {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-                ],
-             r: [
-                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
-                  {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-                  {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-                ],
-  },
+             {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
+             {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+             {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             ],
+               c: [
+               {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
+               {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+               {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             ],
+               r: [
+               {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
+               {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+               {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             ],
+           },
   init: function(sock) {
-    if (!state.seatingSection) {
-      var self = this;
-      console.log("Movement wants seating info");
-      getSeatingCb(function() {
-        self.restOfInit(sock);
-      });
-    } else {
-      this.restOfInit(sock);
-    }
-  },
+          if (!state.seatingSection) {
+            var self = this;
+            console.log("Movement wants seating info");
+            getSeatingCb(function() {
+              self.restOfInit(sock);
+            });
+          } else {
+            this.restOfInit(sock);
+          }
+        },
   restOfInit: function(sock) {
-    console.log("Initing rest");
-    this.messageHandler(sock);
-    this.meter = new p5.Amplitude();
-    this.env = new p5.Env();
-    this.env.setADSR(
-        this.initialADSR.a,
-        this.initialADSR.d,
-        this.initialADSR.s,
-        this.initialADSR.r);
-    this.env.setRange(1, 0);
-    this.reverb = new p5.Reverb();
-    this.reverb.amp(8);
-    var self = this;
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc = new osc.type();
-      osc.osc.amp(self.env);
-      osc.osc.freq(osc.offset(440));
-      osc.osc.start();
-      osc.osc.disconnect();
-      self.reverb.process(osc.osc, 0.5, 0.8);
-    });
-    this.bg = clientConfig.visual.bg;
-  },
+                console.log("Initing rest");
+                this.messageHandler(sock);
+                this.meter = new p5.Amplitude();
+                this.env = new p5.Env();
+                this.env.setADSR(
+                    this.initialADSR.a,
+                    this.initialADSR.d,
+                    this.initialADSR.s,
+                    this.initialADSR.r);
+                this.env.setRange(1, 0);
+                this.reverb = new p5.Reverb();
+                this.reverb.amp(8);
+                var self = this;
+                this.oscBank[state.seatingSection].forEach(function(osc) {
+                  osc.osc = new osc.type();
+                  osc.osc.amp(self.env);
+                  osc.osc.freq(osc.offset(440));
+                  osc.osc.start();
+                  osc.osc.disconnect();
+                  self.reverb.process(osc.osc, 0.5, 0.8);
+                });
+                this.bg = clientConfig.visual.bg;
+              },
   cleanup: function() {
-    if(state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.stop();
-        if(osc.osc) osc.osc.dispose();
-      });
-      if(this.meter) this.meter.dispose();
-      if(this.reverb) this.reverb.dispose();
-    }
-  },
+             if(state.seatingSection) {
+               this.oscBank[state.seatingSection].forEach(function(osc) {
+                 osc.osc.stop();
+                 if(osc.osc) osc.osc.dispose();
+               });
+               if(this.meter) this.meter.dispose();
+               if(this.reverb) this.reverb.dispose();
+             }
+           },
   draw: function() {
-    var seatingSection = state.seatingSection || 'c';
-    background(0);
-    if (this.meter) {
-      var level = this.meter.getLevel();
-    } else {
-      var level = 0;
-    }
-    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[seatingSection];
-    var bgColor = color(
-        baseColor.H,
-        baseColor.S,
-        baseColor.B,
-        bgAlpha);
+          var seatingSection = state.seatingSection || 'c';
+          background(0);
+          if (this.meter) {
+            var level = this.meter.getLevel();
+          } else {
+            var level = 0;
+          }
+          var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+          var baseColor = this.backgroundColors[seatingSection];
+          var bgColor = color(
+              baseColor.H,
+              baseColor.S,
+              baseColor.B,
+              bgAlpha);
 
-    noStroke();
-    fill(bgColor);
-    rect(0, 0, width, height);
-  },
+          noStroke();
+          fill(bgColor);
+          rect(0, 0, width, height);
+        },
   messageHandler: function(sock) {
-    var self = this;
-    sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
-    sock.on("setChord", function(payload) {self.setChordS(self, payload)});
-  },
+                    var self = this;
+                    sock.on("setADSR", function (payload) {self.setADSR(self, payload)});
+                    sock.on("setChord", function(payload) {self.setChordS(self, payload)});
+                  },
   touchStarted: function() {
-    console.log("touch started");
-    if (state.seatingSection) {
-      this.noteOff();
-      this.noteOn();
-      return false;
-    }
-  },
+                  console.log("touch started");
+                  if (state.seatingSection) {
+                    this.noteOff();
+                    this.noteOn();
+                    return false;
+                  }
+                },
   touchEnded: function() {
-    console.log("tap touch ended");
-    if (state.seatingSection) {
-      this.noteOff();
-      return false;
-    }
-  },
+                console.log("tap touch ended");
+                if (state.seatingSection) {
+                  this.noteOff();
+                  return false;
+                }
+              },
   noteOn: function() {
-    if(this.env) {
-    this.env.triggerAttack();
-    }
-  },
+            if(this.env) {
+              this.env.triggerAttack();
+            }
+          },
   noteOff: function() {
-    if(this.env) {
-      this.env.triggerRelease();
-    }
-  },
+             if(this.env) {
+               this.env.triggerRelease();
+             }
+           },
   setChordS: function(self, payload) {
-    self.setChord(payload);
-  },
+               self.setChord(payload);
+             },
   setChord: function(payload) {
-    var chord = payload.chord;
-    var note = chord[state.clientId % chord.length];
-    this.setNote(note);
-  },
+              var chord = payload.chord;
+              var note = chord[state.clientId % chord.length];
+              this.setNote(note);
+            },
   setNote: function(note) {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        var freq = osc.offset(midiToFreq(note));
-        console.log("Setting osc freq to ", freq);
-        osc.osc.freq(freq);
-      });
-    }
-  },
+             if ( state.seatingSection) {
+               this.oscBank[state.seatingSection].forEach(function(osc) {
+                 var freq = osc.offset(midiToFreq(note));
+                 console.log("Setting osc freq to ", freq);
+                 osc.osc.freq(freq);
+               });
+             }
+           },
   setADSR: function(self, payload) {
-    if(self.env) self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
-  },
+             if(self.env) self.env.setADSR(payload.a, payload.d, payload.s, payload.r);
+           },
   mute: function() {
-    if(this.env){
-      this.env.mult(0);
-    }
-  },
+          if(this.env){
+            this.env.mult(0);
+          }
+        },
   unmute: function() {
-    if(this.env){
-    this.env.mult(1);
-    }
-  },
+            if(this.env){
+              this.env.mult(1);
+            }
+          },
   setGain: function(gain) {
-    if(this.env){
-    this.env.mult(gain);
-    }
-  }
+             if(this.env){
+               this.env.mult(gain);
+             }
+           }
 }
 
 var drone = {
   backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B:80},
-    r: {H: 70, S: 50, B:80}
-  },
+                      l: {H: 10, S: 50, B:80},
+                      c: {H: 40, S: 50, B:80},
+                      r: {H: 70, S: 50, B:80}
+                    },
   filterParams: {
-    max: 5000,
-    min: 100,
-    qMax: 15,
-    qMin: 0.001
-  },
+                  max: 5000,
+                  min: 100,
+                  qMax: 15,
+                  qMin: 0.001
+                },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
-                  {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-                  {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-                ],
-             c: [
-                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
-                  {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-                  {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-                ],
-             r: [
-                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
-                  {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
-                  {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
-                ],
-  },
+             {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
+             {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+             {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             ],
+               c: [
+               {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
+               {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+               {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             ],
+               r: [
+               {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
+               {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+               {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
+             ],
+           },
   modFreq: 60,
   modDepth: 100,
   ampFreq: 1,
@@ -293,118 +304,118 @@ var drone = {
     }
   },
   restOfInit: function(sock){
-    console.log("Initing rest");
-    this.messageHandler(sock);
-    this.meter = new p5.Amplitude();
-    this.modOsc = new p5.SinOsc();
-    this.modOsc.start();
-    this.modOsc.disconnect();
-    this.modOsc.amp(this.modDepth);
-    this.modOsc.freq(this.modFreq);
-    this.reverb = new p5.Reverb();
-    this.reverb.amp(8);
-    var self = this;
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc = new osc.type();
-      osc.osc.amp(1);
-      osc.osc.freq(osc.offset(440));
-      osc.osc.start();
-      osc.osc.disconnect();
-      osc.osc.freq(self.modOsc);
-      self.reverb.process(osc.osc, 0.5, 0.8);
-    });
-    this.bg = clientConfig.visual.bg;
-  },
+                console.log("Initing rest");
+                this.messageHandler(sock);
+                this.meter = new p5.Amplitude();
+                this.modOsc = new p5.SinOsc();
+                this.modOsc.start();
+                this.modOsc.disconnect();
+                this.modOsc.amp(this.modDepth);
+                this.modOsc.freq(this.modFreq);
+                this.reverb = new p5.Reverb();
+                this.reverb.amp(8);
+                var self = this;
+                this.oscBank[state.seatingSection].forEach(function(osc) {
+                  osc.osc = new osc.type();
+                  osc.osc.amp(1);
+                  osc.osc.freq(osc.offset(440));
+                  osc.osc.start();
+                  osc.osc.disconnect();
+                  osc.osc.freq(self.modOsc);
+                  self.reverb.process(osc.osc, 0.5, 0.8);
+                });
+                this.bg = clientConfig.visual.bg;
+              },
   cleanup: function() {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.stop();
-        if (osc.osc) osc.osc.dispose();
-      });
-      this.modOsc.stop();
-      if (this.modOsc) this.modOsc.dispose();
-      if (this.reverb) this.reverb.dispose();
-      if (this.meter) this.meter.dispose();
-    }
-  },
+             if ( state.seatingSection) {
+               this.oscBank[state.seatingSection].forEach(function(osc) {
+                 osc.osc.stop();
+                 if (osc.osc) osc.osc.dispose();
+               });
+               this.modOsc.stop();
+               if (this.modOsc) this.modOsc.dispose();
+               if (this.reverb) this.reverb.dispose();
+               if (this.meter) this.meter.dispose();
+             }
+           },
   draw: function() {
-    background(0);
-    var seatingSection = state.seatingSection || 'c';
-    if (this.meter) {
-      var level = this.meter.getLevel();
-    } else {
-      var level = 0;
-    }
-    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[seatingSection];
-    var bgColor = color(
-        baseColor.H,
-        baseColor.S,
-        baseColor.B,
-        bgAlpha);
+          background(0);
+          var seatingSection = state.seatingSection || 'c';
+          if (this.meter) {
+            var level = this.meter.getLevel();
+          } else {
+            var level = 0;
+          }
+          var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+          var baseColor = this.backgroundColors[seatingSection];
+          var bgColor = color(
+              baseColor.H,
+              baseColor.S,
+              baseColor.B,
+              bgAlpha);
 
-    noStroke();
-    fill(bgColor);
-    rect(0, 0, width, height);
-  },
+          noStroke();
+          fill(bgColor);
+          rect(0, 0, width, height);
+        },
   messageHandler: function(sock) {
-    var self = this;
-  },
+                    var self = this;
+                  },
   mute: function() {
-    if (state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(0);
-      });
-    }
-  },
+          if (state.seatingSection) {
+            this.oscBank[state.seatingSection].forEach(function(osc) {
+              osc.osc.amp(0);
+            });
+          }
+        },
   unmute: function() {
-    if (state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(1);
-      });
-    }
-  },
+            if (state.seatingSection) {
+              this.oscBank[state.seatingSection].forEach(function(osc) {
+                osc.osc.amp(1);
+              });
+            }
+          },
   setGain: function(gain) {
-    if (state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(gain);
-      });
-    }
-  },
+             if (state.seatingSection) {
+               this.oscBank[state.seatingSection].forEach(function(osc) {
+                 osc.osc.amp(gain);
+               });
+             }
+           },
   touchEnded: function() {
-    return false;
-  },
+                return false;
+              },
   touchStarted: function() {
-    return false;
-  },
+                  return false;
+                },
   deviceShaken: function() {
-    return false;
-  }
+                  return false;
+                }
 }
 
 var glitch = {
   backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B: 80},
-    r: {H: 70, S: 50, B:80}
-  },
+                      l: {H: 10, S: 50, B:80},
+                      c: {H: 40, S: 50, B: 80},
+                      r: {H: 70, S: 50, B:80}
+                    },
   filterParams: {
-    max: 5000,
-    min: 100,
-    qMax: 15,
-    qMin: 0.001
-  },
+                  max: 5000,
+                  min: 100,
+                  qMax: 15,
+                  qMin: 0.001
+                },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null}
+             {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null}
              ],
-             c: [
-                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null}
-                ],
-             r: [
-                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null}
-                ],
-  },
+               c: [
+               {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null}
+             ],
+               r: [
+               {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null}
+             ],
+           },
   baseFreq: 440,
   glitchFreq: 100,
   glitch: 0,
@@ -420,116 +431,116 @@ var glitch = {
     }
   },
   restOfInit: function(sock) {
-    console.log("Initing rest");
-    this.messageHandler(sock);
-    this.meter = new p5.Amplitude();
-    this.reverb = new p5.Reverb();
-    this.reverb.amp(8);
-    var self = this;
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc = new osc.type();
-      osc.osc.amp(1);
-      osc.osc.freq(osc.offset(440));
-      osc.osc.start();
-      osc.osc.disconnect();
-      self.reverb.process(osc.osc, 0.5, 0.8);
-    });
-    this.bg = clientConfig.visual.bg;
-  },
+                console.log("Initing rest");
+                this.messageHandler(sock);
+                this.meter = new p5.Amplitude();
+                this.reverb = new p5.Reverb();
+                this.reverb.amp(8);
+                var self = this;
+                this.oscBank[state.seatingSection].forEach(function(osc) {
+                  osc.osc = new osc.type();
+                  osc.osc.amp(1);
+                  osc.osc.freq(osc.offset(440));
+                  osc.osc.start();
+                  osc.osc.disconnect();
+                  self.reverb.process(osc.osc, 0.5, 0.8);
+                });
+                this.bg = clientConfig.visual.bg;
+              },
   cleanup: function() {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.stop();
-        if (osc.osc) osc.osc.dispose();
-      });
-      if (this.filter) this.filter.dispose();
-      if (this.meter) this.meter.dispose();
-    }
-  },
+             if ( state.seatingSection) {
+               this.oscBank[state.seatingSection].forEach(function(osc) {
+                 osc.osc.stop();
+                 if (osc.osc) osc.osc.dispose();
+               });
+               if (this.filter) this.filter.dispose();
+               if (this.meter) this.meter.dispose();
+             }
+           },
   draw: function() {
-    var seatingSection = state.seatingSection || 'c';
-    background(0);
-    if (this.meter) {
-      var level = this.meter.getLevel();
-    } else {
-      var level = 0;
-    }
-    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[state.seatingSection];
-    var bgColor;
-    var glitchVal = this.glitchFreq*this.glitch;
-    var thisThold = random(100);
-    console.log("Glitch prob: ", glitchVal, " threshold:", thisThold);
-    if(glitchVal > thisThold) {
-      var self = this;
-      var randomOffset = random(-this.glitchOffset, this.glitchOffset)*this.glitch;
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.freq(self.baseFreq + randomOffset);
-      });
-      bgColor = color(
-          baseColor.H + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
-          baseColor.S + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
-          baseColor.B + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
-          bgAlpha);
-    } else {
-      bgColor = color(
-          baseColor.H,
-          baseColor.S,
-          baseColor.B,
-          bgAlpha);
-    }
-    noStroke();
-    fill(bgColor);
-    rect(0, 0, width, height);
-  },
+          var seatingSection = state.seatingSection || 'c';
+          background(0);
+          if (this.meter) {
+            var level = this.meter.getLevel();
+          } else {
+            var level = 0;
+          }
+          var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+          var baseColor = this.backgroundColors[state.seatingSection];
+          var bgColor;
+          var glitchVal = this.glitchFreq*this.glitch;
+          var thisThold = random(100);
+          console.log("Glitch prob: ", glitchVal, " threshold:", thisThold);
+          if(glitchVal > thisThold) {
+            var self = this;
+            var randomOffset = random(-this.glitchOffset, this.glitchOffset)*this.glitch;
+            this.oscBank[state.seatingSection].forEach(function(osc) {
+              osc.osc.freq(self.baseFreq + randomOffset);
+            });
+            bgColor = color(
+                baseColor.H + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
+                baseColor.S + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
+                baseColor.B + random(-this.glitchOffset, this.glitchOffset)*this.glitch,
+                bgAlpha);
+          } else {
+            bgColor = color(
+                baseColor.H,
+                baseColor.S,
+                baseColor.B,
+                bgAlpha);
+          }
+          noStroke();
+          fill(bgColor);
+          rect(0, 0, width, height);
+        },
   messageHandler: function(sock) {
-    var self = this;
-    sock.on("setNote", function (payload) {self.setNote(self, payload)});
-    sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
-    sock.on("setGlitchFreq", function(payload) {self.setGlitchFreq(self, payload)});
-  },
+                    var self = this;
+                    sock.on("setNote", function (payload) {self.setNote(self, payload)});
+                    sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
+                    sock.on("setGlitchFreq", function(payload) {self.setGlitchFreq(self, payload)});
+                  },
   setNote: function(self, payload) {
-    self.baseFreq = midiToFreq(payload.note);
-  },
+             self.baseFreq = midiToFreq(payload.note);
+           },
   setGlitch: function(self, payload) {
-    console.log("setting glitch to ", payload.glitch);
-    self.glitch = payload.glitch;
-  },
+               console.log("setting glitch to ", payload.glitch);
+               self.glitch = payload.glitch;
+             },
   setGlitchFreq: function(self, payload) {
-    self.glitchFreq = payload.glitchFreq;
-  },
+                   self.glitchFreq = payload.glitchFreq;
+                 },
   mute: function() {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(0);
-      });
-    }
-  },
+          if ( state.seatingSection) {
+            this.oscBank[state.seatingSection].forEach(function(osc) {
+              osc.osc.amp(0);
+            });
+          }
+        },
   unmute: function() {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(1);
-      });
-    }
-  },
+            if ( state.seatingSection) {
+              this.oscBank[state.seatingSection].forEach(function(osc) {
+                osc.osc.amp(1);
+              });
+            }
+          },
   touchStarted: function() {
-    return false;
-  },
+                  return false;
+                },
   touchEnded: function() {
-    return false;
-  },
+                return false;
+              },
   deviceShaken: function() {
-    return false;
-  },
+                  return false;
+                },
   setGain: function(gain) {
-    if ( state.seatingSection) {
-      this.oscBank[state.seatingSection].forEach(function(osc) {
-        if (osc.osc) {
-          osc.osc.amp(gain);
-        }
-      });
-    }
-  },
+             if ( state.seatingSection) {
+               this.oscBank[state.seatingSection].forEach(function(osc) {
+                 if (osc.osc) {
+                   osc.osc.amp(gain);
+                 }
+               });
+             }
+           },
 }
 
 var shakey = {
@@ -540,85 +551,85 @@ var shakey = {
     r: {H: 70, S: 50, B:80}
   },
   init: function(sock) {
-    var self = this;
-    if (!state.seatingSection) {
-      getSeatingCb(function() {
-        self.restOfInit(sock);
-      });
-    } else {
-      this.restOfInit(sock);
-    }
-  },
+          var self = this;
+          if (!state.seatingSection) {
+            getSeatingCb(function() {
+              self.restOfInit(sock);
+            });
+          } else {
+            this.restOfInit(sock);
+          }
+        },
   restOfInit: function(sock) {
-    console.log("Initing rest");
-    var self = this;
-    this.messageHandler(sock);
-    this.meter = new p5.Amplitude();
-    this.bg = clientConfig.visual.bg;
-    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
-    setShakeThreshold(this.shakeThreshold);
-  },
+                console.log("Initing rest");
+                var self = this;
+                this.messageHandler(sock);
+                this.meter = new p5.Amplitude();
+                this.bg = clientConfig.visual.bg;
+                this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
+                setShakeThreshold(this.shakeThreshold);
+              },
   cleanup: function() {
-    if(this.meter) this.meter.dispose();
-  },
+             if(this.meter) this.meter.dispose();
+           },
   draw: function() {
-    var seatingSection = state.seatingSection || 'c';
-    background(0);
-    if(this.meter) {
-      var level = this.meter.getLevel();
-    } else {
-      console.log("No level");
-      var level = 0;
-    }
-    var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[seatingSection];
-    var bgColor = color(
-        baseColor.H,
-        baseColor.S,
-        baseColor.B,
-        bgAlpha);
+          var seatingSection = state.seatingSection || 'c';
+          background(0);
+          if(this.meter) {
+            var level = this.meter.getLevel();
+          } else {
+            console.log("No level");
+            var level = 0;
+          }
+          var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+          var baseColor = this.backgroundColors[seatingSection];
+          var bgColor = color(
+              baseColor.H,
+              baseColor.S,
+              baseColor.B,
+              bgAlpha);
 
-    noStroke();
-    fill(bgColor);
-    rect(0, 0, width, height);
-  },
+          noStroke();
+          fill(bgColor);
+          rect(0, 0, width, height);
+        },
   messageHandler: function(sock) {
-  },
+                  },
   mute: function() {
-    if(this.sound) {
-    this.sound.setVolume(0);
-    }
-  },
+          if(this.sound) {
+            this.sound.setVolume(0);
+          }
+        },
   unmute: function() {
-    if(this.sound) {
-    this.sound.setVolume(1);
-    }
-  },
+            if(this.sound) {
+              this.sound.setVolume(1);
+            }
+          },
   setGain: function(gain) {
-    if(this.sound) {
-    this.sound.setVolume(gain);
-    }
-  },
+             if(this.sound) {
+               this.sound.setVolume(gain);
+             }
+           },
   deviceShaken: function() {
-   console.log("Shaken!");
-   if (this.sound && this.sound.isLoaded()) {
-     console.log("Play sound");
-     this.sound.play();
-   }
-  },
+                  console.log("Shaken!");
+                  if (this.sound && this.sound.isLoaded()) {
+                    console.log("Play sound");
+                    this.sound.play();
+                  }
+                },
   touchStarted: function() {
-    return false;
-  },
+                  return false;
+                },
   touchEnded: function() {
-    return false;
-  }
+                return false;
+              }
 }
 
 var movements = [
-  nosection,
+nosection,
   tap,
   drone,
   glitch,
   shakey
-]
+  ]
 
