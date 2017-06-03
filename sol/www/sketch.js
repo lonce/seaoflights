@@ -30,7 +30,7 @@ function globalMessageHandler(sock) {
 
 function audienceInit() {
   // TODO: Make these pretty
-  //alert("Please make sure your phone isn't silenced, and the volume is turned up.");
+  alert("Please make sure your volume is turned up (phone not silenced) and lock your rotation. Reload the page if your phone stops making light and sound. Enjoy!");
   //alert("Please make sure your device rotation is locked, and your device doesn't go to sleep.");
   //alert("If you ever have issues with the instrument, please reload the page and your instrument will be reinitialized. Enjoy!");
   globalMessageHandler(socket);
@@ -123,7 +123,8 @@ function seatingCheck(data) {
     }
     if(data.glitch) {
       if (state.movement && state.movement.setGlitch) {
-        state.movement.setGlitch(data);
+        console.log(data.glitch);
+        state.movement.setGlitch(state.movement, {glitch: data.glitch});
       }
     }
     if(data.chord && state.movement && state.movement.setChord) {
@@ -137,6 +138,8 @@ function seatingCheck(data) {
 
 function muteClient(data) {
   if (state.movement.mute) {
+    console.log(state.movementId);
+    console.log(state.movement);
     state.movement.mute();
   }
 }
@@ -158,6 +161,9 @@ function setMovement(data) {
     console.log("Reinitializing current movement ", state.movementId);
     state.movement.cleanup();
     state.movement.init(socket);
+    if(data.mute) {
+      muteClient();
+    }
     return;
   }
   if (state.movement && state.movement.cleanup) {
@@ -168,6 +174,9 @@ function setMovement(data) {
   console.log("Setting movement to: ", data.movement);
   state.movement = movements[data.movement];
   state.movementId = data.movement;
+  if(data.mute) {
+    muteClient();
+  }
 }
 
 function setup() {

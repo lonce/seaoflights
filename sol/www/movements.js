@@ -5,10 +5,6 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
-//TODO: Record samples
-//TODO: Add alert that asks to tap once and shake for vibraslap
-//TODO: No more section mutes
-
 
 var welcome = {
   backgroundColor: {H: 10, S: 50, B:80},
@@ -104,8 +100,9 @@ var vibraslap = {
   backgroundColor: {H: 10, S: 50, B:80},
   shakeThreshold: 20,
   initialized: false,
+  muted: false,
   init: function(sock) {
-    this.slap = loadSound("assets/shakeSound.mp3");
+    this.slap = loadSound("assets/shakeSound.mp3", function() { alert("Your phone is ready. Tap the black screen once to activate and shake your phone to play!")});
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
     setShakeThreshold(this.shakeThreshold);
@@ -133,19 +130,15 @@ var vibraslap = {
     rect(0, 0, width, height);
   },
   deviceShaken() {
-    if (this.initialized && this.slap.isLoaded()) {
+    if (this.initialized && this.slap.isLoaded() && !this.muted) {
       this.slap.play();
     }
   },
   mute: function() {
-    if (this.initialized) {
-      this.slap.amp(0);
-    }
+    this.muted = true;
   },
   unmute: function() {
-    if (this.initialized) {
-      this.slap.amp(1);
-    }
+    this.muted = false;
   },
   setGain: function(gain) {
     if (this.initialized) {
@@ -173,12 +166,12 @@ var tap = {
     qMin: 0.001
   },
   oscBank: {
-    l: [
+    c: [
     {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
     {type: p5.SinOsc, offset: function(freq) {return freq + 1}, osc: null},
     {type: p5.SinOsc, offset: function(freq) {return freq - 1}, osc: null}
     ],
-    c: [
+    l: [
     {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
     {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
     {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
@@ -349,6 +342,7 @@ var drone = {
   },
   initialized: false,
   baseNote: 48,
+  muted: false,
   clinkTimeout: 5000,
   muteClink: false,
   baseFreq: 440,
@@ -486,21 +480,33 @@ var drone = {
   messageHandler: function(sock) {
     var self = this;
     sock.on("setChord", function(payload) {self.setChordS(self, payload)});
-    sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
+    sock.on("setGlitch", function(payload) {console.log(payload);self.setGlitch(self, payload)});
   },
   mute: function() {
     if (this.initialized) {
-      this.env.setRange(0,0);
+      this.pulseGn1.amp(0);
+      this.pulseGn2.amp(0)
+      this.triGn1.amp(0);
+      this.triGn2.amp(0);
+      this.noiseGn.amp(0);
     }
   },
   unmute: function() {
     if (this.initialized) {
-      this.env.setRange(1,0);
+      this.pulseGn1.amp(0.33);
+      this.pulseGn2.amp(0.33)
+      this.triGn1.amp(1);
+      this.triGn2.amp(1);
+      this.noiseGn.amp(0.3);
     }
   },
   setGain: function(gain) {
       if(this.initialized){
-          this.env.setRange(gain, 0);
+        this.pulseGn1.amp(0.33*gain);
+        this.pulseGn2.amp(0.33*gain)
+        this.triGn1.amp(1*gain);
+        this.triGn2.amp(1*gain);
+        this.noiseGn.amp(0.3*gain);
       }
   },
   setChordS: function(self, payload) {
@@ -521,7 +527,7 @@ var drone = {
       }
   },
   setGlitch: function(self, payload) {
-    console.log("setting glitch to ", payload.glitch);
+    console.log(payload);
     self.glitch = payload.glitch;
     var noiseGain = max([0, 0.66*(0.5-self.glitch)]);
     console.log(noiseGain);
@@ -553,7 +559,7 @@ var drone = {
 }
 
 var shakey = {
-  shakeThreshold: 20,
+  shakeThreshold: 50,
   backgroundColors: {
     l: {H: 10, S: 50, B:80},
     c: {H: 40, S: 50, B: 80},
@@ -569,8 +575,9 @@ var shakey = {
       this.restOfInit(sock);
     }
   },
+  timedOut: false,
+  timeout: 1000,
   restOfInit: function(sock) {
-    //TODO: Initialize with envelope
     console.log("Initing rest");
     var self = this;
     this.meter = new p5.Amplitude();
@@ -635,10 +642,13 @@ var shakey = {
   },
   deviceShaken: function() {
     if(this.initialized) {
-      console.log("Shaken!");
-      if (this.sound && this.sound.isLoaded()) {
-        console.log("Play sound");
+      if (this.sound && this.sound.isLoaded() && !this.sound.isPlaying()) {
         this.sound.play();
+        this.timedOut = true;
+        var self = this;
+        setTimeout(function() {
+          self.timedOut = false;
+        }, this.timeout);
       }
     }
   }
