@@ -10,6 +10,7 @@ var nosection = {
   backgroundColor: {H: 10, S: 50, B:80},
   shakeThreshold: 20,
   whisperProb: 5,
+  whisperDenom: 250,
   init: function(sock) {
       this.whisper = loadSound("assets/whisper.mp3");
       this.shakeSound = loadSound("assets/shakeSound.mp3");
