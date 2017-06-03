@@ -98,14 +98,21 @@ function setLocation(loc) {
   socket.emit("setLocation", {seatingSection: loc});
 }
 
+function pausecomp(millis)
+{
+    var date = new Date();
+    var curDate = null;
+    do { curDate = new Date(); }
+    while(curDate-date < millis);
+}
+
 function seatingCheck(data) {
   if(data.seatingSection !== state.seatingSection) {
     console.log("Server has outdated seating information for me, correcting");
     sendMessage("setLocation", {seatingSection: state.seatingSection});
   } else {
     console.log("Server has correct seating information for me, moving on");
-    while(!state.movement) {sleep(10)};
-    sleep(500);
+		pausecomp(500);
     if(data.gain) {
       console.log("Server said my gain should be ", data.gain);
       setGain(data);
