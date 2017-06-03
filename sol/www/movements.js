@@ -139,11 +139,13 @@ var vibraslap = {
   mute: function() {
     if (this.initialized) {
       this.slap.amp(0);
+      this.slap.mult(0);
     }
   },
   unmute: function() {
     if (this.initialized) {
       this.slap.amp(1);
+      this.slap.mult(1);
     }
   },
   setGain: function(gain) {
