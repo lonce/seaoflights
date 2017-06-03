@@ -12,7 +12,7 @@ var socket = io();
 
 var state = {
   clientId: -1,
-  seatingSection: null,
+  seatingSection: false,
   movementId: 0,
   movement: null
 };
@@ -20,7 +20,7 @@ var state = {
 
 function globalMessageHandler(sock) {
   sock.on("init", initClient);
-  sock.on("getSeating", getSeating);
+  sock.on("getSeating", getSeatingSock);
   sock.on("seatingAck", seatingCheck);
   sock.on("mute", muteClient);
   sock.on("unmute", unmuteClient);
@@ -40,11 +40,70 @@ function audienceInit() {
 function initClient(data) {
   state.clientId = data.clientId;
   console.log("Server initialized this client with the id ", state.clientId);
+  var dat = data.ackData
+  console.log("Other data: ", dat);
+  if(dat.movement) {
+    console.log("Server said my movement should be ", dat.movement);
+    setMovement(dat);
+  }
+  if(dat.gain) {
+    console.log("Server said my gain should be ", dat.gain);
+    setGain(data);
+  }
+  if(dat.mute) {
+    console.log("Server said my mute should be ", dat.mute);
+    muteClient();
+  }
 }
 
-function getSeating(data) {
-  state.seatingSection = prompt("Enter the general area of the audience you're seated at(this doesn't have to be exact) : (L)eft, (C)enter, (R)ight", "").toLowerCase();
-  socket.emit("setLocation", {seatingSection: state.seatingSection});
+function getSeatingSock(data) {
+  getSeatingCb();
+};
+
+function getSeatingCb(cb) {
+  $('body').append($("<div id='locationPrompt'>Please tap your section as indicated by the conductors</div>"));
+  $('#locationPrompt').dialog({
+    buttons: [
+    {
+      text: "Left",
+      click: function() {
+        $(this).dialog("close");
+        $(this).remove();
+        setLocation("l");
+        cb();
+      }
+    },
+    {
+      text: "Center",
+      click: function() {
+        $(this).dialog("close");
+        $(this).remove();
+        setLocation("c");
+        cb();
+      }
+    },
+    {
+      text: "Right",
+      click: function() {
+        $(this).dialog("close");
+        $(this).remove();
+        setLocation("r");
+        cb();
+      }
+    },
+    ],
+    draggable: false,
+    closeOnEscape: false,
+    modal: true,
+    resizable: false,
+    dialogClass: "no-close"
+  });
+}
+
+function setLocation(loc) {
+  console.log("setting location to ", loc);
+  state.seatingSection = loc;
+  socket.emit("setLocation", {seatingSection: loc});
 }
 
 function seatingCheck(data) {
@@ -53,19 +112,6 @@ function seatingCheck(data) {
     sendMessage("setLocation", {seatingSection: state.seatingSection});
   } else {
     console.log("Server has correct seating information for me, moving on");
-    console.log("Other data: ", data);
-    if(data.movement) {
-      console.log("Server said my movement should be ", data.movement);
-      setMovement(data);
-    }
-    if(data.gain) {
-      console.log("Server said my gain should be ", data.gain);
-      setGain(data);
-    }
-    if(data.mute) {
-      console.log("Server said my mute should be ", data.mute);
-      muteClient();
-    }
   }
 }
 
@@ -89,6 +135,7 @@ function setGain(data) {
 
 function setMovement(data) {
   if (state.movement && state.movementId === data.movement) {
+    console.log("Reinitializing current movement ", state.movementId);
     state.movement.cleanup();
     state.movement.init(socket);
     return;
@@ -113,6 +160,10 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
 }
 
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
+}
+
 function draw() {
   if (state.movement && state.movement.draw) {
     state.movement.draw();
@@ -122,21 +173,18 @@ function touchStarted() {
   if(state.movement && state.movement.touchStarted) {
     state.movement.touchStarted();
   }
-  return false;
 }
 
 function touchEnded() {
   if(state.movement && state.movement.touchEnded) {
     state.movement.touchEnded();
   }
-  return false;
 }
 
 function deviceShaken() {
   if(state.movement && state.movement.deviceShaken) {
     state.movement.deviceShaken();
   }
-  return false;
 }
 
 function deviceMoved() {

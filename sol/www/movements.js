@@ -132,6 +132,18 @@ var tap = {
                 ],
   },
   init: function(sock) {
+    if (!state.seatingSection) {
+      var self = this;
+      console.log("Movement wants seating info");
+      getSeatingCb(function() {
+        self.restOfInit(sock);
+      });
+    } else {
+      this.restOfInit(sock);
+    }
+  },
+  restOfInit: function(sock) {
+    console.log("Initing rest");
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.env = new p5.Env();
@@ -153,22 +165,28 @@ var tap = {
       self.reverb.process(osc.osc, 0.5, 0.8);
     });
     this.bg = clientConfig.visual.bg;
-    //alert("In this section, tap your phone to make a sound. Try to follow the conductor for your section and tap in unison with your audience members");
   },
   cleanup: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
-      osc.osc.stop();
-      if(osc.osc) osc.osc.dispose();
-    });
-    if(this.env) this.env.dispose();
-    if(this.meter) this.meter.dispose();
-    if(this.reverb) this.reverb.dispose();
+    if(state.seatingSection) {
+      this.oscBank[state.seatingSection].forEach(function(osc) {
+        osc.osc.stop();
+        if(osc.osc) osc.osc.dispose();
+      });
+      if(this.env) this.env.dispose();
+      if(this.meter) this.meter.dispose();
+      if(this.reverb) this.reverb.dispose();
+    }
   },
   draw: function() {
+    var seatingSection = state.seatingSection || 'c';
     background(0);
-    var level = this.meter.getLevel();
+    if (this.meter) {
+      var level = this.meter.getLevel();
+    } else {
+      var level = 0;
+    }
     var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[state.seatingSection];
+    var baseColor = this.backgroundColors[seatingSection];
     var bgColor = color(
         baseColor.H,
         baseColor.S,
@@ -185,11 +203,17 @@ var tap = {
     sock.on("setChord", function(payload) {self.setChord(self, payload)});
   },
   touchStarted: function() {
-    this.noteOff();
-    this.noteOn();
+    if (state.seatingSection) {
+      this.noteOff();
+      this.noteOn();
+      return false;
+    }
   },
   touchEnded: function() {
-    this.noteOff();
+    if (state.seatingSection) {
+      this.noteOff();
+      return false;
+    }
   },
   noteOn: function() {
     this.env.triggerAttack();
@@ -203,7 +227,8 @@ var tap = {
     self.setNote(note);
   },
   setNote: function(note) {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       var freq = osc.offset(midiToFreq(note));
       console.log("Setting osc freq to ", freq);
       osc.osc.freq(freq);
@@ -237,19 +262,19 @@ var drone = {
   },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: (freq) => {freq}, osc: null},
-                  {type: p5.TriOsc, offset: (freq) => {freq + freq/2}, osc: null},
-                  {type: p5.TriOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.TriOsc, offset: function(freq) {return freq - freq/2}, osc: null}
                 ],
              c: [
-                  {type: p5.SawOsc, offset: (freq) => {freq}, osc: null},
-                  {type: p5.SawOsc, offset: (freq) => {freq + freq/2}, osc: null},
-                  {type: p5.SawOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.SawOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.SawOsc, offset: function(freq) {return freq - freq/2}, osc: null}
                 ],
              r: [
-                  {type: p5.SinOsc, offset: (freq) => {freq}, osc: null},
-                  {type: p5.SinOsc, offset: (freq) => {freq + freq/2}, osc: null},
-                  {type: p5.SinOsc, offset: (freq) => {freq - freq/2}, osc: null}
+                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null},
+                  {type: p5.SinOsc, offset: function(freq) {return freq + freq/2}, osc: null},
+                  {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
                 ],
   },
   modFreq: 60,
@@ -257,6 +282,17 @@ var drone = {
   ampFreq: 1,
   ampDepth: 1,
   init: function(sock) {
+    var self = this;
+    if (!state.seatingSection) {
+      getSeatingCb(function() {
+        self.restOfInit(sock);
+      });
+    } else {
+      this.restOfInit(sock);
+    }
+  },
+  restOfInit: function(sock){
+    console.log("Initing rest");
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.modOsc = new p5.SinOsc();
@@ -290,9 +326,14 @@ var drone = {
   },
   draw: function() {
     background(0);
-    var level = this.meter.getLevel();
+    var seatingSection = state.seatingSection || 'c';
+    if (this.meter) {
+      var level = this.meter.getLevel();
+    } else {
+      var level = 0;
+    }
     var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[state.seatingSection];
+    var baseColor = this.backgroundColors[seatingSection];
     var bgColor = color(
         baseColor.H,
         baseColor.S,
@@ -307,17 +348,20 @@ var drone = {
     var self = this;
   },
   mute: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.amp(0);
     });
   },
   unmute: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.amp(1);
     });
   },
   setGain: function(gain) {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.amp(gain);
     });
   },
@@ -337,13 +381,13 @@ var glitch = {
   },
   oscBank: {
              l: [
-                  {type: p5.TriOsc, offset: (freq) => {freq}, osc: null}
+                  {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null}
              ],
              c: [
-                  {type: p5.SawOsc, offset: (freq) => {freq}, osc: null}
+                  {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null}
                 ],
              r: [
-                  {type: p5.SinOsc, offset: (freq) => {freq}, osc: null}
+                  {type: p5.SinOsc, offset: function(freq) {return freq}, osc: null}
                 ],
   },
   baseFreq: 440,
@@ -351,6 +395,17 @@ var glitch = {
   glitch: 0,
   glitchOffset: 100,
   init: function(sock) {
+    var self = this;
+    if (!state.seatingSection) {
+      getSeatingCb(function() {
+        self.restOfInit(sock);
+      });
+    } else {
+      this.restOfInit(sock);
+    }
+  },
+  restOfInit: function(sock) {
+    console.log("Initing rest");
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.reverb = new p5.Reverb();
@@ -367,7 +422,8 @@ var glitch = {
     this.bg = clientConfig.visual.bg;
   },
   cleanup: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.stop();
       if (osc.osc) osc.osc.dispose();
     });
@@ -375,10 +431,15 @@ var glitch = {
     if (this.meter) this.meter.dispose();
   },
   draw: function() {
+    var seatingSection = state.seatingSection || 'c';
     background(0);
-    var level = this.meter.getLevel();
+    if (this.meter) {
+      var level = this.meter.getLevel();
+    } else {
+      var level = 0;
+    }
     var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[state.seatingSection];
+    var baseColor = this.backgroundColors[seatingSection];
     var bgColor;
     var glitchVal = this.glitchFreq*this.glitch;
     var thisThold = random(100);
@@ -386,7 +447,7 @@ var glitch = {
     if(glitchVal > thisThold) {
       var self = this;
       var randomOffset = random(-this.glitchOffset, this.glitchOffset)*this.glitch;
-      this.oscBank[state.seatingSection].forEach(function(osc) {
+      this.oscBank[seatingSection].forEach(function(osc) {
         osc.osc.freq(self.baseFreq + randomOffset);
       });
       bgColor = color(
@@ -422,17 +483,20 @@ var glitch = {
     self.glitchFreq = payload.glitchFreq;
   },
   mute: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.amp(0);
     });
   },
   unmute: function() {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.amp(1);
     });
   },
   setGain: function(gain) {
-    this.oscBank[state.seatingSection].forEach(function(osc) {
+    var seatingSection = state.seatingSection || 'c';
+    this.oscBank[seatingSection].forEach(function(osc) {
       osc.osc.amp(gain);
     });
   },
@@ -447,6 +511,17 @@ var shakey = {
   },
   init: function(sock) {
     var self = this;
+    if (!state.seatingSection) {
+      getSeatingCb(function() {
+        self.restOfInit(sock);
+      });
+    } else {
+      this.restOfInit(sock);
+    }
+  },
+  restOfInit: function(sock) {
+    console.log("Initing rest");
+    var self = this;
     this.messageHandler(sock);
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
@@ -458,10 +533,16 @@ var shakey = {
     if(this.meter) this.meter.dispose();
   },
   draw: function() {
+    var seatingSection = state.seatingSection || 'c';
     background(0);
-    var level = this.meter.getLevel();
+    if(this.meter) {
+      var level = this.meter.getLevel();
+    } else {
+      console.log("No level");
+      var level = 0;
+    }
     var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-    var baseColor = this.backgroundColors[state.seatingSection];
+    var baseColor = this.backgroundColors[seatingSection];
     var bgColor = color(
         baseColor.H,
         baseColor.S,
