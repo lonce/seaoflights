@@ -5,12 +5,12 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
-var whisper = loadSound("assets/whisper.mp3");
 
 var nosection = {
   backgroundColor: {H: 10, S: 50, B:80},
   shakeThreshold: 20,
   whisperProb: 5,
+  whisper = loadSound("assets/whisper.mp3"),
   init: function(sock) {
       this.shakeSound = loadSound("assets/shakeSound.mp3");
       this.messageHandler(sock);
@@ -38,8 +38,8 @@ var nosection = {
             noStroke();
             fill(bgColor);
             rect(0, 0, width, height);
-            if(whisper.isLoaded() && random(100) < this.whisperProb) {
-              whisper.play();
+            if(this.whisper.isLoaded() && random(100) < this.whisperProb) {
+              this.whisper.play();
             }
           },
     messageHandler: function(sock) {
@@ -62,17 +62,17 @@ var nosection = {
     mute: function() {
             this.tapSound.amp(0);
             this.shakeSound.amp(0);
-            whisper.amp(0);
+            this.whisper.amp(0);
           },
     unmute: function() {
             this.tapSound.amp(1);
             this.shakeSound.amp(1);
-            whisper.amp(1);
+            this.whisper.amp(1);
             },
     setGain: function(gain) {
             this.tapSound.amp(gain);
             this.shakeSound.amp(gain);
-            whisper.amp(gain);
+            this.whisper.amp(gain);
              }
 }
 
