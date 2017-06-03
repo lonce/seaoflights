@@ -158,6 +158,9 @@ function setMovement(data) {
     console.log("Reinitializing current movement ", state.movementId);
     state.movement.cleanup();
     state.movement.init(socket);
+    if(data.mute) {
+      muteClient();
+    }
     return;
   }
   if (state.movement && state.movement.cleanup) {
@@ -168,6 +171,9 @@ function setMovement(data) {
   console.log("Setting movement to: ", data.movement);
   state.movement = movements[data.movement];
   state.movementId = data.movement;
+  if(data.mute) {
+    muteClient();
+  }
 }
 
 function setup() {
