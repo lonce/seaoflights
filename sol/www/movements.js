@@ -487,10 +487,11 @@ var drone = {
   },
   mute: function() {
     if (this.initialized) {
-      this.env.setRange(0,0);
-      this.gains.forEach(function(gain) {
-        gain.amp(0);
-      });
+      this.pulseGn1.amp(0);
+      this.pulseGn2.amp(0)
+      this.triGn1.amp(0);
+      this.triGn2.amp(0);
+      this.noiseGn.amp(0);
     }
   },
   unmute: function() {
