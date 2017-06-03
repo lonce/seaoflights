@@ -483,7 +483,7 @@ var drone = {
   messageHandler: function(sock) {
     var self = this;
     sock.on("setChord", function(payload) {self.setChordS(self, payload)});
-    sock.on("setGlitch", function(payload) {self.setGlitch(self, payload)});
+    sock.on("setGlitch", function(payload) {console.log(payload);self.setGlitch(self, payload)});
   },
   mute: function() {
     if (this.initialized) {
@@ -530,6 +530,7 @@ var drone = {
       }
   },
   setGlitch: function(self, payload) {
+    console.log(payload);
     self.glitch = payload.glitch;
     var noiseGain = max([0, 0.66*(0.5-self.glitch)]);
     console.log(noiseGain);
