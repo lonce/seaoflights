@@ -53,6 +53,9 @@ var nosection = {
                       this.tapSound.play();
                     }
                   },
+    touchEnded: function() {
+      return false;
+    },
     setWhisperProb: function(self, payload) {
                       self.whisperProb = payload.whisperProb;
                     },
@@ -241,6 +244,9 @@ var tap = {
     if(this.env){
     this.env.mult(gain);
     }
+  },
+  touchEnded: function() {
+    return false;
   }
 }
 
@@ -366,6 +372,15 @@ var drone = {
       });
     }
   },
+  touchEnded: function() {
+    return false;
+  },
+  touchStarted: function() {
+    return false;
+  },
+  deviceShaken: function() {
+    return false;
+  }
 }
 
 var glitch = {
@@ -498,10 +513,21 @@ var glitch = {
       });
     }
   },
+  touchStarted: function() {
+    return false;
+  },
+  touchEnded: function() {
+    return false;
+  },
+  deviceShaken: function() {
+    return false;
+  }
   setGain: function(gain) {
     if ( state.seatingSection) {
       this.oscBank[state.seatingSection].forEach(function(osc) {
-        osc.osc.amp(gain);
+        if (osc.osc) {
+          osc.osc.amp(gain);
+        }
       });
     }
   },
@@ -580,6 +606,12 @@ var shakey = {
      console.log("Play sound");
      this.sound.play();
    }
+  },
+  touchStarted: function() {
+    return false;
+  },
+  touchEnded: function() {
+    return false;
   }
 }
 
