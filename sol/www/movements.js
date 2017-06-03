@@ -207,7 +207,7 @@ var tap = {
       this.env.triggerRelease();
     }
   },
-  setChord: function(self, payload) {
+  setChordS: function(self, payload) {
     self.setChord(payload);
   },
   setChord: function(payload) {
