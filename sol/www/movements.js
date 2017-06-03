@@ -568,61 +568,63 @@ var shakey = {
                 this.bg = clientConfig.visual.bg;
                 this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
                 setShakeThreshold(this.shakeThreshold);
+                this.initialized = true;
               },
   cleanup: function() {
-             if(this.meter) this.meter.dispose();
+             if(this.initialized) {
+               this.initialized = false;
+               if(this.meter) this.meter.dispose();
+             }
            },
   draw: function() {
-          var seatingSection = state.seatingSection || 'c';
           background(0);
-          if(this.meter) {
-            var level = this.meter.getLevel();
-          } else {
-            console.log("No level");
-            var level = 0;
-          }
-          var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
-          var baseColor = this.backgroundColors[seatingSection];
-          var bgColor = color(
-              baseColor.H,
-              baseColor.S,
-              baseColor.B,
-              bgAlpha);
+          if(this.initialized) {
+            var seatingSection = state.seatingSection || 'c';
+            if(this.meter) {
+              var level = this.meter.getLevel();
+            } else {
+              console.log("No level");
+              var level = 0;
+            }
+            var bgAlpha = pow(level, clientConfig.visual.bg.alphaFactor);
+            var baseColor = this.backgroundColors[seatingSection];
+            var bgColor = color(
+                baseColor.H,
+                baseColor.S,
+                baseColor.B,
+                bgAlpha);
 
-          noStroke();
-          fill(bgColor);
-          rect(0, 0, width, height);
+            noStroke();
+            fill(bgColor);
+            rect(0, 0, width, height);
+          }
         },
   messageHandler: function(sock) {
                   },
   mute: function() {
-          if(this.sound) {
+          if(this.initialized && this.sound) {
             this.sound.setVolume(0);
           }
         },
   unmute: function() {
-            if(this.sound) {
+          if(this.initialized && this.sound) {
               this.sound.setVolume(1);
             }
           },
   setGain: function(gain) {
-             if(this.sound) {
+          if(this.initialized && this.sound) {
                this.sound.setVolume(gain);
              }
            },
   deviceShaken: function() {
+          if(this.initialized) {
                   console.log("Shaken!");
                   if (this.sound && this.sound.isLoaded()) {
                     console.log("Play sound");
                     this.sound.play();
                   }
-                },
-  touchStarted: function() {
-                  return false;
-                },
-  touchEnded: function() {
-                return false;
-              }
+          }
+  }
 }
 
 var movements = [
