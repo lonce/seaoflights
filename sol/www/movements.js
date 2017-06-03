@@ -5,9 +5,6 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
-//TODO: Record samples
-//TODO: No more section mutes
-
 
 var welcome = {
   backgroundColor: {H: 10, S: 50, B:80},
@@ -169,12 +166,12 @@ var tap = {
     qMin: 0.001
   },
   oscBank: {
-    l: [
+    c: [
     {type: p5.TriOsc, offset: function(freq) {return freq}, osc: null},
     {type: p5.SinOsc, offset: function(freq) {return freq + 1}, osc: null},
     {type: p5.SinOsc, offset: function(freq) {return freq - 1}, osc: null}
     ],
-    c: [
+    l: [
     {type: p5.SawOsc, offset: function(freq) {return freq}, osc: null},
     {type: p5.TriOsc, offset: function(freq) {return freq + freq/2}, osc: null},
     {type: p5.SinOsc, offset: function(freq) {return freq - freq/2}, osc: null}
