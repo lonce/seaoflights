@@ -37,7 +37,7 @@ var nosection = {
     $('.generalControls').append(whisperSlider);
     $('.whisper-slider').slider({
       min: 0,
-      max: 100,
+      max: 50,
       value: 5,
       step: 1,
       change: function(event, ui) {

@@ -38,7 +38,7 @@ var nosection = {
             noStroke();
             fill(bgColor);
             rect(0, 0, width, height);
-            if(this.whisper.isLoaded() && (random(100) < this.whisperProb)) {
+            if(this.whisper.isLoaded() && (random(1000) < this.whisperProb)) {
               console.log("play whisper");
               this.whisper.play();
             }
