@@ -103,6 +103,7 @@ var vibraslap = {
   backgroundColor: {H: 10, S: 50, B:80},
   shakeThreshold: 20,
   initialized: false,
+  mute: false,
   init: function(sock) {
     this.slap = loadSound("assets/shakeSound.mp3", function() { alert("Your phone is ready. Tap the black screen once to activate and shake your phone to play!")});
     this.meter = new p5.Amplitude();
@@ -132,21 +133,15 @@ var vibraslap = {
     rect(0, 0, width, height);
   },
   deviceShaken() {
-    if (this.initialized && this.slap.isLoaded()) {
+    if (this.initialized && this.slap.isLoaded() && !this.mute) {
       this.slap.play();
     }
   },
   mute: function() {
-    if (this.initialized) {
-      this.slap.amp(0);
-      this.slap.mult(0);
-    }
+    this.mute = true;
   },
   unmute: function() {
-    if (this.initialized) {
-      this.slap.amp(1);
-      this.slap.mult(1);
-    }
+    this.mute = false;
   },
   setGain: function(gain) {
     if (this.initialized) {
