@@ -648,7 +648,7 @@ var shakey = {
         var self = this;
         setTimeout(function() {
           self.timedOut = false;
-        }, this.timeout);
+        }, this.sound.duration()*1.5);
       }
     }
   }
