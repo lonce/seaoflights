@@ -158,7 +158,6 @@ var tap = {
         osc.osc.stop();
         if(osc.osc) osc.osc.dispose();
       });
-      if(this.env) this.env.dispose();
       if(this.meter) this.meter.dispose();
       if(this.reverb) this.reverb.dispose();
     }
