@@ -562,7 +562,7 @@ var drone = {
 }
 
 var shakey = {
-  shakeThreshold: 30,
+  shakeThreshold: 50,
   backgroundColors: {
     l: {H: 10, S: 50, B:80},
     c: {H: 40, S: 50, B: 80},
@@ -579,12 +579,12 @@ var shakey = {
     }
   },
   restOfInit: function(sock) {
-    //TODO: Initialize with envelope
     console.log("Initing rest");
     var self = this;
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
     this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
+    this.sound.
     setShakeThreshold(this.shakeThreshold);
     this.messageHandler(sock);
     this.initialized = true;
@@ -645,7 +645,7 @@ var shakey = {
   deviceShaken: function() {
     if(this.initialized) {
       console.log("Shaken!");
-      if (this.sound && this.sound.isLoaded()) {
+      if (this.sound && this.sound.isLoaded() && !this.sound.isPlaying()) {
         console.log("Play sound");
         this.sound.play();
       }
