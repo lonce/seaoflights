@@ -579,6 +579,7 @@ var shakey = {
     }
   },
   timedOut: false,
+  timeout: 1000,
   restOfInit: function(sock) {
     console.log("Initing rest");
     var self = this;
@@ -650,7 +651,7 @@ var shakey = {
         var self = this;
         setTimeout(function() {
           self.timedOut = false;
-        }, 2000);
+        }, this.timeout);
       }
     }
   }
