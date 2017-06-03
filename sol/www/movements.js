@@ -5,11 +5,15 @@ var sampleFiles = [
   "assets/sm-bell.mp3"
 ];
 
+var whisper = loadSound("assets/whisper.mp3");
+
 var nosection = {
   backgroundColor: {H: 10, S: 50, B:80},
   shakeThreshold: 20,
+  whisperProb: 5,
   init: function(sock) {
       this.shakeSound = loadSound("assets/shakeSound.mp3");
+      this.messageHandler(sock);
       this.tapSound = loadSound("assets/tapSound.mp3");
       this.meter = new p5.Amplitude();
       this.bg = clientConfig.visual.bg;
@@ -34,12 +38,22 @@ var nosection = {
             noStroke();
             fill(bgColor);
             rect(0, 0, width, height);
+            if(whisper.isLoaded() && random(100) < this.whisperProb) {
+              whisper.play();
+            }
           },
+    messageHandler: function(sock) {
+                    var self = this;
+                    sock.on("setWhisperProb",function (payload) {self.setWhisperProb(self, payload)});
+                    },
     touchStarted: function() {
                     if(this.tapSound.isLoaded()) {
                       this.tapSound.play();
                     }
                   },
+    setWhisperProb: function(self, payload) {
+                      self.whisperProb = payload.whisperProb;
+                    },
     deviceShaken: function() {
                     if(this.shakeSound.isLoaded()) {
                       this.shakeSound.play();
@@ -48,14 +62,17 @@ var nosection = {
     mute: function() {
             this.tapSound.amp(0);
             this.shakeSound.amp(0);
+            whisper.amp(0);
           },
     unmute: function() {
             this.tapSound.amp(1);
             this.shakeSound.amp(1);
+            whisper.amp(1);
             },
     setGain: function(gain) {
             this.tapSound.amp(gain);
             this.shakeSound.amp(gain);
+            whisper.amp(gain);
              }
 }
 

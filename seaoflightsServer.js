@@ -181,6 +181,11 @@ io.sockets.on("connection", function (socket) {
     console.log("Setting glitch to ", data.glitch);
     socket.broadcast.emit("setGlitch", data);
   });
+  socket.on("setWhisperProb", function(data) {
+    sectionParamMap.whisperProb = data.whisperProb;
+    console.log("Setting whisper prob to ", data.whisperProb);
+    socket.broadcast.emit("setWhisperProb", data);
+  });
   socket.on("chordChange", function(data) {
     sectionParamMap.chord = data.chord;
     console.log("Setting chord to ", data.chord);

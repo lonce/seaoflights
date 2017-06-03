@@ -33,11 +33,19 @@ var nosection = {
       step: 0.05,
       change: updateADSR
     });
-    var seatingBtn = $("<button class='nosec-mv'>Get Seating</button>");
-    seatingBtn.on('click', function() {
-      socket.emit("getSeating", {});
+    var whisperSlider = $("<div class='whisper-slider nosec-mv'></div>");
+    $('.generalControls').append(whisperSlider);
+    $('.whisper-slider').slider({
+      min: 0,
+      max: 100,
+      value: 5,
+      step: 1,
+      change: function(event, ui) {
+        var whisperVal = parseFloat(ui.value);
+        console.log("Setting whisper to ", whisperVal);
+        socket.emit('setWhisperProb', {whisperProb: whisperVal});
+      }
     });
-    globalCtrl.append(seatingBtn);
     function updateADSR(event, ui) {
       var sliderCell = $(ui.handle).parent().parent();
       var atk = parseFloat(sliderCell.children('.a-slider').slider("option", "value"));
