@@ -345,6 +345,7 @@ var drone = {
   },
   initialized: false,
   baseNote: 48,
+  muted: false,
   clinkTimeout: 5000,
   muteClink: false,
   baseFreq: 440,
@@ -487,16 +488,27 @@ var drone = {
   mute: function() {
     if (this.initialized) {
       this.env.setRange(0,0);
+      this.gains.forEach(function(gain) {
+        gain.amp(0);
+      });
     }
   },
   unmute: function() {
     if (this.initialized) {
-      this.env.setRange(1,0);
+      this.pulseGn1.amp(0.33);
+      this.pulseGn2.amp(0.33)
+      this.triGn1.amp(1);
+      this.triGn2.amp(1);
+      this.noiseGn.amp(0.3);
     }
   },
   setGain: function(gain) {
       if(this.initialized){
-          this.env.setRange(gain, 0);
+        this.pulseGn1.amp(0.33*gain);
+        this.pulseGn2.amp(0.33*gain)
+        this.triGn1.amp(1*gain);
+        this.triGn2.amp(1*gain);
+        this.noiseGn.amp(0.3*gain);
       }
   },
   setChordS: function(self, payload) {
