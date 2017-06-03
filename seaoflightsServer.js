@@ -124,6 +124,10 @@ io.sockets.on("connection", function (socket) {
       console.log("Mute message without scope, ignoring");
     }
   });
+  socket.on("mute", function(data) {
+    socket.broadcast.emit("fadeOut", {});
+    sectionParamMap.mute = true;
+  });
   socket.on("unmute", function(data) {
     if (data.scope === "all") {
       socket.broadcast.emit("unmute", {});
