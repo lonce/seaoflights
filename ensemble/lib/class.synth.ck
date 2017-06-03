@@ -24,7 +24,20 @@ public class Synth {
 
     0 => float glitch;
 
-    /*36 => float currDroneNote;*/
+    /* DRONE */
+    ADSR dEnv => NRev dRev => dac;
+    TriOsc d1 => dEnv;
+    TriOsc d2 => dEnv;
+    /*SawOsc dBass;*/
+    SawOsc dBass => dEnv;
+    Noise dNoise => BiQuad dFilter => dEnv;
+    SinOsc dMod => blackhole;
+
+    36 => float dRoot;
+    0 => int currDroneIndex;
+    [ [0, 2,  3,  5,  8, -2, 0, -2, -7, -4, -2, 0], [7, 7, 10, 12, 3, 5, 7,  5,  0,  3,  5, 7] ] @=> int droneNotes[][];
+    float dNote1;
+    float dNote2;
 
     fun void init(dur _baseNoteDur) {
         _baseNoteDur => baseNoteDur;
@@ -46,6 +59,21 @@ public class Synth {
         0 => tri.gain;
 
         env.set(0.001, 0, 1, 0.001);
+
+        0.3 => d1.gain;
+        0.3 => d2.gain;
+        0.25 => dBass.gain;
+        0.3 => dNoise.gain;
+        0.5 => dRev.mix;
+        // noise filter
+        .99 => dFilter.prad;
+        .05 => dFilter.gain;
+        1 => dFilter.eqzs;
+        dEnv.attackTime(2::second);
+        dEnv.sustainLevel(1);
+        dEnv.releaseTime(8::second);
+        10 => dMod.freq;
+        tuneDrone(dNote1, dNote2);
 
         gfxXmit.setHost("localhost", 12000);
         0.5 => rlsTime => atkTime;
@@ -121,23 +149,43 @@ public class Synth {
         env.keyOff();
     }
 
-    /*fun void setDroneNote(float note) {
-        spork ~ _setDroneNote(note);
+    fun void tuneDrone(float n1, float n2) {
+        n1 => dNote1;
+        n2 => dNote2;
+
+        <<< dRoot, dNote1, dNote2 >>>;
+
+        Std.mtof(dRoot + dNote1 + 12) => d1.freq;
+        Std.mtof(dRoot + dNote1) => dBass.freq;
+        Std.mtof(dRoot + dNote2) => d2.freq;
     }
 
-    fun void _setDroneNote(float note) {
-        note => currDroneNote;
+    fun void modDrone() {
+        while (true) {
+            (Std.mtof(dRoot + dNote1) * 2) + (dMod.last() * 220) => dFilter.pfreq;
+            <<< (Std.mtof(dRoot + dNote1) * 2) + (dMod.last() * 220) >>>;
+            2048::samp => now;
+        }
+    }
+
+    fun void advanceDrone() {
+        (currDroneIndex + 1) % droneNotes[0].cap() => currDroneIndex;
+        <<< "next drone chord" >>>;
+        tuneDrone(droneNotes[0][currDroneIndex] $ float, droneNotes[1][currDroneIndex] $ float);
     }
 
     fun void startDrone() {
+        <<< "start drone" >>>;
+        spork ~ modDrone();
         gfxFadeIn();
-        env.keyOn();
+        dEnv.keyOn();
     }
 
     fun void stopDrone() {
+        <<< "end drone" >>>;
         gfxFadeOut();
-        env.keyOff();
-    }*/
+        dEnv.keyOff();
+    }
 
     fun void gfxFadeIn() {
         "/screen/fadeIn" => string path;

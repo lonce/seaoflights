@@ -17,32 +17,32 @@ public class Vector3D
     float x;
     float y;
     float z;
-    
+
     // set values
     fun void set( float _x, float _y, float _z )
     { _x => x; _y => y; _z => z; }
-    
+
     // get value
     fun float value() { return x; }
     // get goal
     fun float goal() { return y; }
     // get slew
     fun float slew() { return z; }
-    
+
     // get/set value
     fun float value( float n ) { n => x; return x; }
     // get/set goal
     fun float goal( float n ) { n => y; return y; }
     // get/set slew
     fun float slew( float n ) { n => z; return z; }
-    
+
     // update goal
     fun void update( float theGoal, float theSlew )
     {
         theGoal => goal;
         theSlew => slew;
     }
-    
+
     // interpolate (spork this)
     fun void interp( dur dt )
     {
@@ -76,7 +76,7 @@ fun void test()
     v.set( 0, 100, .1 );
     // spork the interpolator
     spork ~ v.interp( 100::ms );
-    
+
     // observe it
     while( true )
     {

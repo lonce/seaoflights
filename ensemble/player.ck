@@ -20,6 +20,10 @@ fun void main() {
     spork ~ handleSynthRelease();
     spork ~ handleSynthGlitch();
 
+    spork ~ handleDroneStart();
+    spork ~ handleDroneStop();
+    spork ~ handleDroneAdvance();
+
     while (true) 1::second => now;
 }
 
@@ -167,7 +171,7 @@ fun void handleSynthGlitch() {
     }
 }
 
-/*fun void handleDroneStart() {
+fun void handleDroneStart() {
     // create an address in the receiver, store in new variable
     recv.event("/player/drone/start") @=> OscEvent oe;
 
@@ -181,8 +185,48 @@ fun void handleSynthGlitch() {
 
             // grab the next message from the queue.
             while (oe.nextMsg() != 0) {
-                synth.startDron`();
+                synth.startDrone();
             }
         }
     }
-}*/
+}
+
+fun void handleDroneStop() {
+    // create an address in the receiver, store in new variable
+    recv.event("/player/drone/stop") @=> OscEvent oe;
+
+    // infinite event loop
+    while (true) {
+        oe => now;
+
+
+        if (ready) {
+            // wait for event to arrive
+
+            // grab the next message from the queue.
+            while (oe.nextMsg() != 0) {
+                synth.stopDrone();
+            }
+        }
+    }
+}
+
+fun void handleDroneAdvance() {
+    // create an address in the receiver, store in new variable
+    recv.event("/player/drone/advance") @=> OscEvent oe;
+
+    // infinite event loop
+    while (true) {
+        oe => now;
+
+
+        if (ready) {
+            // wait for event to arrive
+
+            // grab the next message from the queue.
+            while (oe.nextMsg() != 0) {
+                synth.advanceDrone();
+            }
+        }
+    }
+}

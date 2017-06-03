@@ -49,6 +49,7 @@ fun void main() {
     initNetwork();
 
     spork ~ handleMIDI();
+    spork ~ handleGT();
 
     spork ~ watchPlayers();
 
@@ -180,9 +181,9 @@ fun void handleMIDI() {
                     <<< "Setup audio" >>>;
                     for (0 => int i; i < _tracks.cap(); i++) {
                         _tracks[i].setSynthAttack(6);
-                        _tracks[i].setSynthRelease(36);
-                        _tracks[i].setSynthGain(0, 120);
-                        _tracks[i].setSynthGain(1, 0);
+                        _tracks[i].setSynthRelease(60);
+                        _tracks[i].setSynthGain(0, 90);
+                        _tracks[i].setSynthGain(1, 20);
                         _tracks[i].setSynthGain(2, 0);
                         _tracks[i].setSynthGain(3, 0);
                         _tracks[i].setSynthGain(4, 60);
@@ -256,7 +257,7 @@ fun void handleMIDI() {
                         _tracks[id].setSynthAttack(64);
                         _tracks[id].setSynthRelease(127);
                         _tracks[i].setSynthGain(0, 100);
-                        _tracks[i].setSynthGain(1, 10);
+                        _tracks[i].setSynthGain(1, 60);
                         _tracks[i].setSynthGain(2, 30);
                         _tracks[i].setSynthGain(3, 20);
                     }
@@ -305,7 +306,7 @@ fun void handleMIDI() {
                     <<< "Initialing section" >>>;
                     for (0 => int i; i < tracks.cap(); i++) {
                         _tracks[i].init(i, xmitters[i], bpm, beatNumber, beatMeasure, 0);
-                        _tracks[i].loadSequence(5, 0);
+                        /*_tracks[i].loadSequence(5, 0);
                         _tracks[i].unmute();
                         _tracks[i].setSynthAttack(45);
                         _tracks[i].setSynthRelease(120);
@@ -314,7 +315,7 @@ fun void handleMIDI() {
                         _tracks[i].setSynthGain(2, 0);
                         _tracks[i].setSynthGain(3, 60);
                         false => _tracks[i].isAwake;
-                        _tracks[i].play();
+                        _tracks[i].play();*/
                     }
 
                     _tracks @=> tracks;
@@ -483,19 +484,19 @@ fun void handleMIDI() {
             if (movement == 4) {
                 if (msg.data2 == 53) {
                     if ((msg.data1 >= 144) && (msg.data1 <= 159)) {
-                        true => tracks[6 + msg.data1 - 144].isAwake;
+                        tracks[6 + msg.data1 - 144].startDrone();
                     }
                 }
                 if (msg.data2 == 54) {
                     if ((msg.data1 >= 144) && (msg.data1 <= 149)) {
-                        true => tracks[msg.data1 - 144].isAwake;
+                        tracks[msg.data1 - 144].startDrone();
                     }
                 }
 
                 // mute
                 if ((msg.data2 == 92) && (msg.data1 == 144)) {
                     for (int i; i < tracks.cap(); i++)
-                        tracks[i].mute();
+                        tracks[i].stopDrone();
                 }
             }
 
@@ -565,4 +566,76 @@ fun void handleMIDI() {
             }*/
         }
     }
+}
+
+// data structure for gametrak
+class GameTrak
+{
+    // previous axis data
+    float lastAxis[6];
+    // current axis data
+    float axis[6];
+}
+
+fun void handleGT() {
+    // make HidIn and HidMsg
+    Hid hi;
+    HidMsg msg;
+
+    // which joystick
+    0 => int device;
+    // get from command line
+    if( me.args() ) me.arg(0) => Std.atoi => device;
+
+    // open joystick 0, exit on fail
+    if( !hi.openJoystick( device ) ) me.exit();
+
+    <<< "joystick '" + hi.name() + "' ready", "" >>>;
+
+    // game track data
+    GameTrak gt;
+
+    // infinite event loop
+    while( true )
+    {
+        // wait on HidIn as event
+        hi => now;
+
+        // messages received
+        while( hi.recv( msg ) )
+        {
+            // joystick axis motion
+            if( msg.isAxisMotion() )
+            {
+                // check which
+                if( msg.which >= 0 && msg.which < 6 )
+                {
+                    // save last
+                    gt.axis[msg.which] => gt.lastAxis[msg.which];
+                    // the z axes map to [0,1], others map to [-1,1]
+                    if( msg.which != 2 && msg.which != 5 )
+                    { msg.axisPosition => gt.axis[msg.which]; }
+                    else
+                    { 1 - ((msg.axisPosition + 1) / 2) => gt.axis[msg.which]; }
+                }
+            }
+
+            // joystick button down
+            else if( msg.isButtonDown() )
+            {
+                // <<< "joystick button", msg.which, "down" >>>;
+                if (movement == 4) {
+                    for (int i; i < tracks.cap(); i++)
+                        tracks[i].advanceDrone();
+                }
+            }
+
+            // joystick button up
+            else if( msg.isButtonUp() )
+            {
+                // <<< "joystick button", msg.which, "up" >>>;
+            }
+        }
+    }
+
 }

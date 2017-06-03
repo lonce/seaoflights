@@ -6,5 +6,5 @@ killgroup(){
 }
 
 open `pwd`/screen/application.macosx/screen.app &
-chuck   lib/class.synth.ck \
+chuck   lib/class.synth.ck lib/class.vector3d.ck \
         player.ck:$1
