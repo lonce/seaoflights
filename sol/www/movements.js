@@ -582,7 +582,7 @@ var shakey = {
     var self = this;
     this.meter = new p5.Amplitude();
     this.bg = clientConfig.visual.bg;
-    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length], function() {alert("In this section, shake your phone to make a sound. Feel free to accompany the piece however you want. Tap the screen once to start");});
+    this.sound = loadSound(sampleFiles[state.clientId % sampleFiles.length]);
     setShakeThreshold(this.shakeThreshold);
     this.messageHandler(sock);
     this.initialized = true;
