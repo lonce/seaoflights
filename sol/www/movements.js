@@ -7,7 +7,7 @@ var sampleFiles = [
 
 
 var welcome = {
-  backgroundColor: {H: 10, S: 50, B:80},
+  backgroundColor: {H:44, S: 100, B:50},
   shakeThreshold: 20,
   whisperProb: 5,
   whisperDenom: 250,
@@ -97,7 +97,7 @@ var welcome = {
 }
 
 var vibraslap = {
-  backgroundColor: {H: 10, S: 50, B:80},
+  backgroundColor: {H: 100, S: 100, B:50},
   shakeThreshold: 20,
   initialized: false,
   muted: false,
@@ -155,9 +155,9 @@ var tap = {
     r: 0.05
   },
   backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B: 80},
-    r: {H: 70, S: 50, B:80}
+    l: {H: 22, S: 100, B:60},
+    c: {H: 54, S: 100, B:60},
+    r: {H: 81, S: 100, B:60}
   },
   filterParams: {
     max: 5000,
@@ -336,9 +336,9 @@ var tap = {
 
 var drone = {
   backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B:80},
-    r: {H: 70, S: 50, B:80}
+    l: {H: 22, S: 100, B:60},
+    c: {H: 54, S: 100, B:60},
+    r: {H: 81, S: 100, B:60}
   },
   initialized: false,
   baseNote: 48,
@@ -561,9 +561,9 @@ var drone = {
 var shakey = {
   shakeThreshold: 25,
   backgroundColors: {
-    l: {H: 10, S: 50, B:80},
-    c: {H: 40, S: 50, B: 80},
-    r: {H: 70, S: 50, B:80}
+    l: {H: 10, S: 100, B:50},
+    c: {H: 10, S: 100, B:50},
+    r: {H: 10, S: 100, B:50}
   },
   init: function(sock) {
     var self = this;
